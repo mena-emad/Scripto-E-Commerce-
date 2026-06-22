@@ -27,6 +27,7 @@ This backend implements core authentication and account management features for 
 - Vendor registration with approval workflow
 - Session management with access and refresh tokens
 - Secure file upload with Cloudinary
+- Product schema scaffolding with vendor ownership, inventory, and discount support
 - Global security middleware for headers, CORS, and NoSQL sanitization
 
 ## Why this project is useful
@@ -37,6 +38,7 @@ This backend is useful as a starting point for MERN-style marketplaces and busin
 - Email verification and password recovery
 - Vendor onboarding and admin controls
 - A clear modular architecture for easy extension
+- Product model scaffolding ready for marketplace features
 - Ready support for frontend integration via secure cookies and JSON APIs
 
 ## Project structure
@@ -47,9 +49,11 @@ This backend is useful as a starting point for MERN-style marketplaces and busin
   - `config/connectDB.js` — MongoDB connection helper
   - `data/models/User.js` — user schema with vendor virtual
   - `data/models/Vendor.js` — vendor profile schema
+  - `data/models/Product.js` — product schema with discount and pricing virtuals
   - `middlewares/auth.js` — protect and role middleware
   - `middlewares/validation.js` — request validation middleware
   - `modules/auth/` — auth routes, controllers, services, request schemas
+  - `modules/products/` — product validation and service scaffolding
   - `utils/` — common utilities, token generation, email and Cloudinary helpers
 - `Front-end/` — placeholder folder for client application
 
@@ -66,7 +70,7 @@ This backend is useful as a starting point for MERN-style marketplaces and busin
 ### Install dependencies
 
 ```bash
-cd "d:/programs and projects/E-Commerce/Back-end"
+cd "Back-End"
 npm install
 ```
 
@@ -117,6 +121,8 @@ Admin-only operations:
 
 - `DELETE /delete-account/:id`
 - `PATCH /block-account/:id`
+
+> Note: Product module files exist under `Back-end/modules/products/`, but product routes are not currently mounted in `Back-end/app.js`.
 
 ### Example request
 
