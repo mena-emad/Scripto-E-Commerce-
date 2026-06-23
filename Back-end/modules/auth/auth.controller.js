@@ -1,4 +1,4 @@
-import { registerService,verifyEmailService ,generateOTPService,loginService,generateNewAccessTokenService,logoutService,forgotPasswordService,resetPasswordService,deleteAccountService,toggleblockAccountService,getMeService} from "./auth.service.js";
+import { registerService,verifyEmailService,updatePasswordService ,generateOTPService,loginService,generateNewAccessTokenService,logoutService,forgotPasswordService,resetPasswordService,deleteAccountService,toggleblockAccountService,getMeService} from "./auth.service.js";
 import catchAsync from "../../utils/catchAsync.js";
 import AppError from "../../utils/AppError.js";
 
@@ -75,16 +75,22 @@ export const forgotPassword = catchAsync(async(req,res,next)=>{
 // ========= reset password controller ========
 export const resetPassword = catchAsync(async(req,res,next)=>{
     await resetPasswordService(req.body.email,req.body.otp,req.body.password);
+    res.clearCookie("refreshToken",{httpOnly:true,secure:true,sameSite:"none"});
+    res.clearCookie("accessToken",{httpOnly:true,secure:true,sameSite:"none"});
     res.status(200).json({message:"Password reset successful please login",Navigate:"/Login"});
 })
 //======== delete My account controller ========
 export const deleteMyAccount = catchAsync(async(req,res,next)=>{
     await deleteAccountService(req.user._id);
+    res.clearCookie("refreshToken",{httpOnly:true,secure:true,sameSite:"none"});
+    res.clearCookie("accessToken",{httpOnly:true,secure:true,sameSite:"none"});
     res.status(200).json({message:"Account deleted successfully",Navigate:"/Login"});
 })
 //======== delete account controller ========
 export const deleteAccount = catchAsync(async(req,res,next)=>{
     await deleteAccountService(req.params.id);
+    res.clearCookie("refreshToken",{httpOnly:true,secure:true,sameSite:"none"});
+    res.clearCookie("accessToken",{httpOnly:true,secure:true,sameSite:"none"});
     res.status(200).json({message:"Account deleted successfully"});
 })
 
@@ -97,4 +103,11 @@ export const toggleblockAccount = catchAsync(async(req,res,next)=>{
 export const getMe = catchAsync(async(req,res,next)=>{
     const user = await getMeService(req.user._id);
     res.status(200).json({user});
+})
+
+//======== update password controller ========
+export const updatePassword = catchAsync(async(req,res,next)=>{
+   const {accessToken,refreshToken} =  await updatePasswordService(req.user._id,req.body.currentPassword,req.body.newPassword);
+    setCookies(res,refreshToken,accessToken);
+    res.status(200).json({message:"Password updated successfully",Navigate:"/ or /home"});
 })

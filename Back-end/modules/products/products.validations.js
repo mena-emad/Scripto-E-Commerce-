@@ -1,6 +1,6 @@
 import joi from "joi";
 
-const productsJoi = joi.object({
+export const productsJoi = joi.object({
     name: joi.string().trim().required().messages({
         "string.empty": "Name is required",
         "any.required": "Name is required",
@@ -23,26 +23,33 @@ const productsJoi = joi.object({
         "string.empty": "Category is required",
         "any.required": "Category is required",
     }),
-    images: joi.array().items(joi.string().uri()).min(1).max(5).required().messages({
-        "array.base": "Images must be an array of URLs",
-        "array.min": "At least 1 image is required",
-        "array.max": "Maximum 5 images are allowed",
+    images: joi.array().max(5).items(
+        joi.object({
+            url: joi.string().trim().required().messages({
+                "string.empty": "Image URL is required",
+                "any.required": "Image URL is required",
+            }),
+            public_id: joi.string().trim().required().messages({
+                "string.empty": "Image public ID is required",
+                "any.required": "Image public ID is required",
+            }),
+        })
+
+    ).messages({
+        "array.max": "You can upload a maximum of 5 images",
         "any.required": "Images are required",
     }),
-    
-    vendor: joi.string().regex(/^[0-9a-fA-F]{24}$/).required().messages({
-        "string.pattern.base": "Invalid Vendor ID format",
-        "any.required": "Vendor ID is required",
-    }),
-    
     discount: joi.object({
-        percentage: joi.number().min(0).max(100).default(0),
-        isActive: joi.boolean().default(false),
-        startDate: joi.date().allow(null).default(null),
-        endDate: joi.date().allow(null).min(joi.ref("startDate")).default(null).messages({
-            "date.min": "End date must be after start date"
-        })
-    }).default()
+            percentage: joi.number().min(0).max(100).default(0),
+            isActive: joi.boolean().default(false),
+            startDate: joi.date().allow(null).default(null),
+            endDate: joi.date().allow(null).min(joi.ref("startDate")).default(null).messages({
+                "date.min": "End date must be after start date"
+            })
+        }).default()
 });
 
-export default productsJoi;
+export const updatedProductJoi = productsJoi.fork(
+    ["name", "quantity", "price", "description", "category", "images", "discount"],
+    (schema)=>schema.optional()
+)

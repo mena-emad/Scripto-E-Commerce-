@@ -91,6 +91,23 @@ export const forgotPasswordJoi = joi.object({
     }),
 })
 
+export const updatePassowrdJoi = joi.object({
+    currentPassword:joi.string().required().messages({
+        "string.empty":"Current password is required",
+        "any.required":"Current password is required",
+    }),
+    newPassword:joi.string().required().pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,"password").messages({
+        "string.empty":"Password is required",
+        "string.pattern.name":"Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, one number, and one special character",
+        "any.required":"Password is required",
+    }),
+    confirmPassword:joi.string().required().valid(joi.ref("newPassword")).messages({
+        "string.empty":"Confirm password is required",
+        "any.only":"Passwords do not match",
+        "any.required":"Confirm password is required",
+    })
+})
+
 export const resetPasswordJoi = joi.object({
     email:joi.string().email().required().messages({
         "string.empty":"Email is required",

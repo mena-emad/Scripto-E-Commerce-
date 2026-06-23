@@ -24,7 +24,7 @@ export const generateOTPService = async(email,type)=>{
     user.OTP = hashOtp;
     user.expiryOtp = Date.now() + 15*60*1000;
     user.lastOtpSentAt = Date.now();
-    await user.save({validateBeforeSave:false});
+    await user.save();
     sendEmail({email:user.email,OTP:otp,name:user.name,type});
     return otp
 }
@@ -48,7 +48,7 @@ export const verifyEmailService = async(email,plainOtp)=>{
     const refreshToken = createRT(user);
     const accessToken = createAT(user);
     user.refreshTokens.push(refreshToken);
-    await user.save({validateBeforeSave:false});
+    await user.save();
     user.password = undefined;
     user.refreshTokens = undefined;
     return {user,refreshToken,accessToken};
@@ -98,7 +98,7 @@ export const loginService = async(email,password)=>{
     if(!isPasswordCorrect)
         throw new AppError("Incorrect password Please try again",400);
     if(!user.isVerified){
-        await generateOTPService(user.email,"verify");
+        await generateOTPService(user.email,"verify")
         throw new AppError("Please verify your email to login check your inbox",400);
 
     }
@@ -110,7 +110,7 @@ export const loginService = async(email,password)=>{
         user.refreshTokens.shift();
     
     user.refreshTokens.push(refreshToken);
-    await user.save({validateBeforeSave:false});
+    await user.save();
     user.password = undefined;
     user.refreshTokens = undefined;
     return {user,refreshToken,accessToken};
@@ -133,7 +133,7 @@ export const generateNewAccessTokenService = async(currentRefreshToken)=>{
     const currentRefreshTokenArr = currentUser.refreshTokens.filter(token=>token!==currentRefreshToken);
     currentRefreshTokenArr.push(newRefreshToken);
     currentUser.refreshTokens = currentRefreshTokenArr;
-    await currentUser.save({validateBeforeSave:false});
+    await currentUser.save();
     currentUser.password = undefined;
     currentUser.refreshTokens = undefined;
     return {currentUser,newAccessToken,newRefreshToken};
@@ -145,7 +145,7 @@ export const logoutService = async(refreshToken,id)=>{
         throw new AppError("User does not exist",400);
     const currentRefreshTokenArr = currentUser.refreshTokens.filter(token=>token!==refreshToken);
     currentUser.refreshTokens = currentRefreshTokenArr;
-    await currentUser.save({validateBeforeSave:false});
+    await currentUser.save();
     currentUser.password = undefined;
     currentUser.refreshTokens = undefined;
     return {currentUser};
@@ -161,7 +161,7 @@ export const forgotPasswordService = async(email)=>{
 
 //======== resetPassword service ========
 export const resetPasswordService = async(email,plainOTP,newPassword)=>{
-    const user = await userModel.findOne({email}).select("+password +OTP +expiryOtp +lastOtpSentAt +refreshTokens");
+    const user = await userModel.findOne({email}).select("+password +OTP +expiryOtp +lastOtpSentAt +passwordChangedAt +refreshTokens");
     if(!user)
         throw new AppError("User does not exist",400);
     const hashOtp = crypto.createHash("sha256").update(plainOTP).digest("hex");
@@ -170,11 +170,12 @@ export const resetPasswordService = async(email,plainOTP,newPassword)=>{
     if(user.expiryOtp < Date.now())
         throw new AppError("OTP expired Please try again",400);
     user.password = newPassword;
+    user.passwordChangedAt = Date.now();
     user.OTP = undefined;
     user.expiryOtp = undefined;
     user.lastOtpSentAt = undefined;
     user.refreshTokens = [];
-    await user.save({validateBeforeSave:false});
+    await user.save();
     user.password = undefined;
 }
 //======== delete account service ========
@@ -199,7 +200,7 @@ export const toggleblockAccountService = async(id)=>{
         throw new AppError("User does not exist",400);
     user.isBlocked = !user.isBlocked;
     const message = user.isBlocked ? "Account blocked successfully" : "Account unblocked successfully";
-    await user.save({validateBeforeSave:false});
+    await user.save();
     user.password = undefined;
     user.refreshTokens = undefined;
     return {message};
@@ -214,3 +215,27 @@ export const getMeService = async(id)=>{
     user.refreshTokens = undefined;
     return user;
 }
+
+//========== update Password Service ===========
+export const updatePasswordService = async(id,currentPassword,newPassword)=>{
+    const currentUser = await userModel.findById(id).select("+password +refreshTokens +passwordChangedAt");
+    if(!currentUser)
+        throw new AppError("User does not exist",400);
+    const isPasswordCorrect = await bcrypt.compare(currentPassword,currentUser.password);
+    if(!isPasswordCorrect){
+        throw new AppError("Current password is incorrect Please try again",400);
+    }
+    currentUser.password = newPassword;
+    currentUser.passwordChangedAt = Date.now();
+    currentUser.refreshTokens = [];
+    const refreshToken = createRT(currentUser);
+    currentUser.refreshTokens.push(refreshToken);
+    const accessToken = createAT(currentUser);
+    await currentUser.save();
+    currentUser.password = undefined;
+    currentUser.passwordChangedAt = undefined;
+    currentUser.refreshTokens = undefined;
+    return {accessToken,refreshToken};
+
+}
+

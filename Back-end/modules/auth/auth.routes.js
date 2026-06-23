@@ -1,5 +1,5 @@
-import { register,verifyEmail,generateOTP,generateNewAccessToken,login,logout,generateOTPreset,forgotPassword,resetPassword,deleteMyAccount ,deleteAccount,toggleblockAccount,getMe} from "./auth.controller.js";
-import  {generateOTPJoi, userJoi,verifyEmailJoi,loginJoi,forgotPasswordJoi,resetPasswordJoi}  from "./auth.validation.js"
+import { register,verifyEmail,updatePassword,generateOTP,generateNewAccessToken,login,logout,generateOTPreset,forgotPassword,resetPassword,deleteMyAccount ,deleteAccount,toggleblockAccount,getMe} from "./auth.controller.js";
+import  {generateOTPJoi,updatePassowrdJoi, userJoi,verifyEmailJoi,loginJoi,forgotPasswordJoi,resetPasswordJoi}  from "./auth.validation.js"
 import { restrictTo, restrictToVendorApproved } from "../../middlewares/auth.js";
 import validation from "../../middlewares/validation.js";
 import express from "express";
@@ -44,6 +44,7 @@ authRouter.post("/reset-password",validation(resetPasswordJoi),resetPassword);
 **/
 authRouter.use(protect);
 authRouter.post("/logout" , logout);
+authRouter.patch('/update-password',validation(updatePassowrdJoi),updatePassword);
 authRouter.delete("/delete-my-account",deleteMyAccount)
 authRouter.get("/me",getMe)
 // authRouter.get("/get-vendor",restrictTo("vendor"),restrictToVendorApproved,getMe)
