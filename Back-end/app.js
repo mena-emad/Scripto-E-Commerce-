@@ -14,6 +14,7 @@ import sanitize from "mongo-sanitize";
 // ==========================================
 import authRouter from "./modules/auth/auth.routes.js";
 import gerror from "./utils/gerror.js";
+import productRouter from "./modules/products/products.routes.js";
 
 const app = express();
 
@@ -66,6 +67,7 @@ app.use((req,res,next)=>{
 
 // ========= Authentication Routes =========
 app.use("/", authRouter);
+app.use("/products",productRouter);
 
 /**
 ||||||||||||||||||||||||||||||||||||||||||||

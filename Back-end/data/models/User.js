@@ -62,25 +62,6 @@ const UserSchema = new mongoose.Schema({
         url:String,
         public_id:String
     },
-    // vendorInfo:{
-    //     type:{
-    //         storeName:{
-    //             type:String,
-    //             required:function(){
-    //                 return this.role === "vendor"
-    //             }
-    //         },
-    //         isApproved:{
-    //             type:Boolean,
-    //             default:false,
-    //             required:function(){
-    //                 return this.role === "vendor"
-    //             }
-    //         },
-
-    //     },
-    //     select:false
-    // }
 },{
     timestamps:true,
     versionKey:false,

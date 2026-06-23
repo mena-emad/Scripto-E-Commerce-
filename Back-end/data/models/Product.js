@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import slugify from "slugify";
 const productSchema = new mongoose.Schema({
     name: {
         type: String,
@@ -9,6 +10,10 @@ const productSchema = new mongoose.Schema({
         type:mongoose.Schema.Types.ObjectId,
         ref:"Vendor",
         required:true
+    },
+    slug: {
+        type: String,
+        unique: true
     },
     category: {
         type: String,
@@ -22,15 +27,18 @@ const productSchema = new mongoose.Schema({
         type: String,
         required: true
     },
-    images: {
-        type: [String],
-        validate:{
-            validator:function(val){
-                return val.length>=1 && val.length<=5
+    images: [
+        {
+            url:{
+                type:String,
+                required:true
             },
-            message:"Product must have at least one image and at most 5 images"
+            public_id:{
+                type:String,
+                required:true
+            }
         }
-    },
+    ],
     quantity: {
         type: Number,
         required: true,
@@ -44,6 +52,7 @@ const productSchema = new mongoose.Schema({
         percentage:{
             type: Number,
             min:[0,"Percentage must be greater than 0"],
+            max:[100,"Percentage must be less than 100"],
             default: 0
         },
         isActive:{
@@ -72,5 +81,13 @@ productSchema.virtual("salePrice").get(function () {
         return this.price*(1-this.discount.percentage/100);
     return this.price
 });
+
+productSchema.pre("save",function(next){
+    if(this.isModified("name")){
+        this.slug = slugify(this.name,{lower:true,strict:true});
+    }
+    next();
+    
+})
 const productModel = mongoose.model("Product", productSchema, "products");
 export default productModel;

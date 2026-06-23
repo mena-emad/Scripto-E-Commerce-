@@ -3,7 +3,7 @@
 ![Version](https://img.shields.io/badge/version-1.0.0-blue)
 ![License](https://img.shields.io/badge/license-ISC-lightgrey)
 
-A modular backend for a multi-vendor e-commerce project. This repository contains the authentication and user management server logic for a marketplace app built with Express, MongoDB, and JWT-based security.
+A modular backend for a multi-vendor e-commerce marketplace. This repository provides authentication, authorization, vendor onboarding, email verification, and product scaffolding using Express, MongoDB, and JWT.
 
 ## Table of Contents
 
@@ -18,43 +18,43 @@ A modular backend for a multi-vendor e-commerce project. This repository contain
 
 ## What the project does
 
-This backend implements core authentication and account management features for an e-commerce marketplace:
+This backend implements marketplace authentication and account management features:
 
-- User sign-up, login, and logout
-- Email verification using OTP
-- Password reset by OTP
-- Role-based access control for `user`, `vendor`, and `admin`
-- Vendor registration with approval workflow
-- Session management with access and refresh tokens
-- Secure file upload with Cloudinary
-- Product schema scaffolding with vendor ownership, inventory, and discount support
-- Global security middleware for headers, CORS, and NoSQL sanitization
+- user registration, login, logout, and account deletion
+- email verification using OTP
+- password reset using OTP
+- role-based access for `user`, `vendor`, and `admin`
+- vendor onboarding and approval checks
+- access and refresh token handling with secure cookies
+- profile image uploads using Cloudinary
+- product module scaffolding with validation and vendor ownership
+- global security middleware for headers, CORS, and NoSQL sanitization
 
 ## Why this project is useful
 
-This backend is useful as a starting point for MERN-style marketplaces and business applications because it includes:
+This codebase is a solid starting point for marketplace applications because it includes:
 
-- A secure authentication flow with cookie-based tokens
-- Email verification and password recovery
-- Vendor onboarding and admin controls
-- A clear modular architecture for easy extension
-- Product model scaffolding ready for marketplace features
-- Ready support for frontend integration via secure cookies and JSON APIs
+- full auth lifecycle with email verification
+- role-based access control
+- admin account management
+- modular route, controller, and service organization
+- backend-ready product module scaffolding
+- frontend-ready JSON API design with secure cookies
 
 ## Project structure
 
 - `Back-end/`
-  - `index.js` — server startup and DB connection
-  - `app.js` — Express application setup and middleware
+  - `index.js` — environment loading, DB connection, and server startup
+  - `app.js` — Express app setup, middleware, and route mounting
   - `config/connectDB.js` — MongoDB connection helper
-  - `data/models/User.js` — user schema with vendor virtual
-  - `data/models/Vendor.js` — vendor profile schema
-  - `data/models/Product.js` — product schema with discount and pricing virtuals
-  - `middlewares/auth.js` — protect and role middleware
-  - `middlewares/validation.js` — request validation middleware
-  - `modules/auth/` — auth routes, controllers, services, request schemas
-  - `modules/products/` — product validation and service scaffolding
-  - `utils/` — common utilities, token generation, email and Cloudinary helpers
+  - `data/models/User.js` — user schema
+  - `data/models/Vendor.js` — vendor schema
+  - `data/models/Product.js` — product schema
+  - `middlewares/auth.js` — route protection and role middleware
+  - `middlewares/validation.js` — Joi request validation middleware
+  - `modules/auth/` — auth routes, controllers, services, and validation schemas
+  - `modules/products/` — product routes, controller, service, and validation schemas
+  - `utils/` — utilities for errors, tokens, email, Cloudinary, and async handling
 - `Front-end/` — placeholder folder for client application
 
 ## Getting started
@@ -70,7 +70,7 @@ This backend is useful as a starting point for MERN-style marketplaces and busin
 ### Install dependencies
 
 ```bash
-cd "Back-End"
+cd "Back-end"
 npm install
 ```
 
@@ -97,7 +97,7 @@ CLOUDINARY_API_SECRET=your_api_secret
 node index.js
 ```
 
-For development, use a file watcher such as nodemon:
+For development, use nodemon:
 
 ```bash
 npx nodemon index.js
@@ -105,31 +105,39 @@ npx nodemon index.js
 
 ## API highlights
 
-Authentication and account management endpoints:
+Active authentication and account management endpoints:
 
-- `POST /signup` — register user or vendor with optional profile image
-- `POST /verify-otp` — confirm email with OTP
-- `POST /generate-otp` — request verification OTP
-- `POST /login` — authenticate user and set auth cookies
-- `POST /forgot-password` — request password reset OTP
-- `POST /reset-password` — reset password with OTP
-- `POST /logout` — revoke refresh token and clear auth cookies
-- `GET /me` — get current authenticated user
-- `DELETE /delete-my-account` — delete own account
+- `POST /signup` — register a user or vendor with optional profile image
+- `POST /verify-otp` — verify email using OTP
+- `POST /generate-otp` — request a verification OTP
+- `POST /generate-new-access-token` — refresh access token with refresh token cookie
+- `POST /login` — authenticate and set auth cookies
+- `POST /forgot-password` — request a password reset OTP
+- `POST /reset-password` — reset password using OTP
+- `PATCH /update-password` — Updates current active session password while enforcing concurrent devices logout.
+- `POST /logout` — logout and clear auth cookies
+- `GET /me` — get authenticated user profile
+- `DELETE /delete-my-account` — delete the logged-in account
+- `DELETE /delete-account/:id` — admin-only delete account
+- `PATCH /block-account/:id` — admin-only block/unblock account
 
-Admin-only operations:
+> Note: `POST /generate-otp-reset` exists as a controller and validation schema, but its route is currently commented out in `Back-end/modules/auth/auth.routes.js`.
 
-- `DELETE /delete-account/:id`
-- `PATCH /block-account/:id`
+## Product module status
 
-> Note: Product module files exist under `Back-end/modules/products/`, but product routes are not currently mounted in `Back-end/app.js`.
+The product module is implemented in `Back-end/modules/products/products.routes.js` and its exported router is mounted at `/products` in `Back-end/app.js`.
+
+Defined product routes are:
+
+- `POST /products/add-product` — create a product (`vendor` only)
+- `GET /products/get-products` — list products (guest allowed)
+- `PUT /products/update-product/:id` — update a product (`vendor` only)
+- `DELETE /products/delete-product/:id` — delete a product (`vendor` or `admin`)
 
 ### Example request
 
 ```bash
-curl -X POST http://localhost:3000/login \
-  -H "Content-Type: application/json" \
-  -d '{"email":"user@example.com","password":"Secret123!"}'
+curl -X POST http://localhost:3000/login   -H "Content-Type: application/json"   -d '{"email":"user@example.com","password":"Secret123!"}'
 ```
 
 ## Environment variables
@@ -145,7 +153,7 @@ Required variables:
 - `CLOUDINARY_API_KEY`
 - `CLOUDINARY_API_SECRET`
 
-Optional:
+Optional variables:
 
 - `PORT`
 - `FRONTEND_URL`
@@ -153,11 +161,11 @@ Optional:
 ## Where to get help
 
 - Open an issue in this repository
-- Review auth logic in `Back-end/modules/auth/`
+- Review backend auth logic in `Back-end/modules/auth/`
 - Check runtime output from `node index.js`
 
 ## Contributing
 
-Contributions are welcome. Please submit issues or pull requests to improve authentication, vendor workflows, or frontend integration.
+Contributions are welcome. Please open issues or pull requests to improve authentication, vendor workflows, or frontend integration.
 
-> Note: This repo does not currently include a separate `CONTRIBUTING.md` file.
+> Note: this repository does not currently include a separate `CONTRIBUTING.md` file.

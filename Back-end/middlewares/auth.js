@@ -30,8 +30,11 @@ export const protect = catchAsync(async(req,res,next)=>{
     if(currentUser.isBlocked)
         return next(new AppError("User is blocked please contact admin",403));
     req.user = currentUser;
+    if(currentUser.role === "vendor")
+        req.vendor = await vendorModel.findOne({owner:currentUser._id});
     next();
 })
+
 
 
 export const restrictTo = (...roles)=>{
@@ -44,9 +47,36 @@ export const restrictTo = (...roles)=>{
 
 export const restrictToVendorApproved = catchAsync(async(req,res,next)=>{
     if(req.user.role !== "vendor") return next();
-    const vendor = await vendorModel.findOne({owner:req.user._id});
-    if(!vendor.isApproved)
+    if(!req.vendor) return next(new AppError("Vendor does not exist please signup",401));
+    if(!req.vendor.isApproved)
         return next(new AppError("Vendor is not approved please wait for approval",403));
-    req.vendor = vendor;
+    next();
+})
+
+export const allowGuest = catchAsync(async(req,res,next)=>{
+    let token;
+    if(req.headers.authorization && req.headers.authorization.startsWith("Bearer")){
+        token = req.headers.authorization.split(" ")[1];
+    }else if(req.cookies && req.cookies.accessToken){
+        token = req.cookies.accessToken;
+    }
+    if(!token)
+        return next();
+    let decoded
+    try{
+        decoded = jwt.verify(token,process.env.JWT_SECRETAT);
+    }catch(err){
+        return next();
+    }
+    const currentUser = await userModel.findById(decoded.id);
+    if(!currentUser)
+        return next();
+    if(currentUser.passwordChangedAfter(decoded.iat))
+        return next();
+    if(currentUser.isBlocked)
+        return next(new AppError("User is blocked please contact admin",403));
+    req.user = currentUser;
+    if(currentUser.role === "vendor")
+        req.vendor = await vendorModel.findOne({owner:currentUser._id});
     next();
 })
