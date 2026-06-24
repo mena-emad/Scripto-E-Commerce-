@@ -23,22 +23,7 @@ export const productsJoi = joi.object({
         "string.empty": "Category is required",
         "any.required": "Category is required",
     }),
-    images: joi.array().max(5).items(
-        joi.object({
-            url: joi.string().trim().required().messages({
-                "string.empty": "Image URL is required",
-                "any.required": "Image URL is required",
-            }),
-            public_id: joi.string().trim().required().messages({
-                "string.empty": "Image public ID is required",
-                "any.required": "Image public ID is required",
-            }),
-        })
 
-    ).messages({
-        "array.max": "You can upload a maximum of 5 images",
-        "any.required": "Images are required",
-    }),
     discount: joi.object({
             percentage: joi.number().min(0).max(100).default(0),
             isActive: joi.boolean().default(false),
@@ -47,9 +32,9 @@ export const productsJoi = joi.object({
                 "date.min": "End date must be after start date"
             })
         }).default()
-});
+})
 
 export const updatedProductJoi = productsJoi.fork(
-    ["name", "quantity", "price", "description", "category", "images", "discount"],
+    ["name", "quantity", "price", "description", "category","discount"],
     (schema)=>schema.optional()
 )

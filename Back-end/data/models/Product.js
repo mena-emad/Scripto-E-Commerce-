@@ -27,18 +27,29 @@ const productSchema = new mongoose.Schema({
         type: String,
         required: true
     },
-    images: [
-        {
-            url:{
-                type:String,
-                required:true
+    images: {
+        type:[
+            new mongoose.Schema(
+            {
+    
+                url:{
+                    type:String,
+                    required:true
+                },
+                public_id:{
+                    type:String,
+                    required:true
+                },
+            },{_id:false,versionKey:false}),
+
+        ],
+        validate: {
+            validator: function (value) {
+                return value.length <= 5;
             },
-            public_id:{
-                type:String,
-                required:true
-            }
+            message: "You can upload a maximum of 5 images"
         }
-    ],
+    },
     quantity: {
         type: Number,
         required: true,
@@ -82,12 +93,10 @@ productSchema.virtual("salePrice").get(function () {
     return this.price
 });
 
-productSchema.pre("save",function(next){
+productSchema.pre("save",function(){
     if(this.isModified("name")){
         this.slug = slugify(this.name,{lower:true,strict:true});
     }
-    next();
-    
 })
 const productModel = mongoose.model("Product", productSchema, "products");
 export default productModel;

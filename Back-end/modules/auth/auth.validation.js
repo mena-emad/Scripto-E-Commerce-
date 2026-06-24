@@ -22,10 +22,6 @@ const userJoi = joi.object({
     role:joi.string().valid("user","vendor").default("user").messages({
         "any.only":"Role is invalid cannot signup as admin",
     }),
-    storeName:joi.when('role', { is: 'vendor', then: joi.string().required().messages({
-        "string.empty":"Store name is required",
-        "any.required":"Store name is required",
-    })}),
     storeAdress:joi.when('role', { is: 'vendor', then: joi.string().required().messages({
         "string.empty":"Store address is required",
         "any.required":"Store address is required",
@@ -33,10 +29,6 @@ const userJoi = joi.object({
     storePhone:joi.when('role', { is: 'vendor', then: joi.string().required().messages({
         "string.empty":"Store phone number is required",
         "any.required":"Store phone number is required",
-    })}),
-    storeEmail:joi.when('role', { is: 'vendor', then: joi.string().required().messages({
-        "string.empty":"Store email is required",
-        "any.required":"Store email is required",
     })}),
     storeDescription:joi.when('role', { is: 'vendor', then: joi.string().required().messages({
         "string.empty":"Store description is required from joi",

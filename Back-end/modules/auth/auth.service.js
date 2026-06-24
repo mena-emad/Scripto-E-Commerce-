@@ -71,11 +71,10 @@ export const registerService = async (user,fileData)=>{
     if(newUser.role === "vendor"){
         message += " Vendor registration pending please wait for approval from admin";
         const vendor = await vendorModel.create({
-            storeName:user.storeName,
             storeAdress:user.storeAdress,
             storePhone:user.storePhone,
+            storeName:newUser.name,
             storeDescription:user.storeDescription,
-            storeEmail:user.storeEmail,
             storeLogo:newUser.image?.url||"",
             owner:newUser._id
         })

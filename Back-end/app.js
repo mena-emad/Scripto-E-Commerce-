@@ -66,8 +66,8 @@ app.use((req,res,next)=>{
 **/
 
 // ========= Authentication Routes =========
-app.use("/", authRouter);
 app.use("/products",productRouter);
+app.use("/", authRouter);
 
 /**
 ||||||||||||||||||||||||||||||||||||||||||||
