@@ -47,7 +47,6 @@ authRouter.post("/logout" , logout);
 authRouter.patch('/update-password',validation(updatePassowrdJoi),updatePassword);
 authRouter.delete("/delete-my-account",deleteMyAccount)
 authRouter.get("/me",getMe)
-// authRouter.get("/get-vendor",restrictTo("vendor"),restrictToVendorApproved,getMe)
 authRouter.use(restrictTo("admin"));
 authRouter.delete("/delete-account/:id",deleteAccount);
 authRouter.patch("/block-account/:id",toggleblockAccount);

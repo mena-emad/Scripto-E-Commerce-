@@ -1,20 +1,11 @@
 import mongoose from "mongoose";
 
 const vendorSchema = new mongoose.Schema({
-    storeName: {
-        type: String,
-        required: true,
-        unique: true
-    },
     storeAdress:{
         type: String,
         required: true
     },
     storePhone:{
-        type: String,
-        required: true
-    },
-    storeEmail:{
         type: String,
         required: true
     },
@@ -24,6 +15,10 @@ const vendorSchema = new mongoose.Schema({
     isApproved: {
         type: Boolean,
         default: false
+    },
+    storeName: {
+        type: String,
+        required: true
     },
     storeDescription: {
         type: String,
