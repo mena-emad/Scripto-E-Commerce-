@@ -1,4 +1,5 @@
 import userModel from "../../data/models/User.js";
+import productModel from "../../data/models/Product.js";
 import AppError from "../../utils/AppError.js";
 import {v2 as cloudinary} from "cloudinary";
 import sendEmail from "../../utils/SendEmail.js";
@@ -7,6 +8,7 @@ import vendorModel from "../../data/models/Vendor.js";
 import bcrypt from "bcrypt"
 import jwt from "jsonwebtoken"
 import crypto from "crypto"
+import cartModel from "../../data/models/Cart.js";
 //======== generate OTP ========
 export const generateOTPService = async(email,type)=>{
     const user = await userModel.findOne({email}).select("+OTP +expiryOtp +lastOtpSentAt");
@@ -182,13 +184,20 @@ export const deleteAccountService = async(id)=>{
     const user = await userModel.findById(id);
     if(!user)
         throw new AppError("User does not exist",400);
-    if(user.role==="vendor")
-        await vendorModel.findOneAndDelete({owner:id});
+    if(user.role==="vendor"){
+        const vendor =await vendorModel.findOne({owner:id});
+        if(vendor){
+            await cartModel.updateMany({"products.vendor":vendor._id},{$pull:{products:{vendor:vendor._id}}});
+            await productModel.deleteMany({vendor:vendor._id});
+            await vendorModel.deleteOne({owner:id});
+
+        }
+    }
+
+    await cartModel.deleteOne({user:id});
     if(user.image&&user.image.public_id)
         await cloudinary.uploader.destroy(user.image.public_id);
     await userModel.findByIdAndDelete(id);
-    user.password = undefined;
-    user.refreshTokens = undefined;
 }
 
 //======== toggle block account Service ========

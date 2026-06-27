@@ -1,6 +1,7 @@
 import vendorModel from "../../data/models/Vendor.js";
 import productModel from "../../data/models/Product.js";
 import AppError from "../../utils/AppError.js";
+import cartModel from "../../data/models/Cart.js";
 import {v2 as cloudinary} from "cloudinary";
 //======== helpers ========
 // async function  getVendorId(userId){
@@ -72,10 +73,11 @@ export const updateProductService = async(id,vendorId,productData,files)=>{
 }
 
 //======== delete Product ========
-export const deleteProductService = async(productId,req)=>{
-    const product = await productModel.findById(productId);
+export const deleteProductService = async(req)=>{
+    const product = await productModel.findById(req.params.id);
     if(!product) throw new AppError("Product does not exist",400);
     if(req.user.role!== "admin" && product.vendor.toString()!==String(req.vendor?._id) )throw new AppError("You are not authorized to delete this product",400);
+    await cartModel.updateMany({"products.product":req.params.id},{$pull:{products:{product:req.params.id}}})
     if(product.images.length>0){
         for(const image of product.images){
             if(image.public_id){
@@ -83,6 +85,6 @@ export const deleteProductService = async(productId,req)=>{
             }
         }
     }
-    await productModel.findByIdAndDelete(productId);
+    await productModel.findByIdAndDelete(req.params.id);
     return product;
 }
