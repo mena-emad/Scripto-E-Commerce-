@@ -12,6 +12,8 @@ A modular backend for a multi-vendor e-commerce marketplace. This repository pro
 - [Project structure](#project-structure)
 - [Getting started](#getting-started)
 - [API highlights](#api-highlights)
+- [Product module status](#product-module-status)
+- [Cart module status](#cart-module-status)
 - [Environment variables](#environment-variables)
 - [Where to get help](#where-to-get-help)
 - [Contributing](#contributing)
@@ -54,6 +56,7 @@ This codebase is a solid starting point for marketplace applications because it 
   - `middlewares/validation.js` — Joi request validation middleware
   - `modules/auth/` — auth routes, controllers, services, and validation schemas
   - `modules/products/` — product routes, controller, service, and validation schemas
+  - `modules/cart/` — cart routes, controller, service, and validation schemas (currently not mounted in `app.js`)
   - `utils/` — utilities for errors, tokens, email, Cloudinary, and async handling
 - `Front-end/` — placeholder folder for client application
 
@@ -113,8 +116,8 @@ Active authentication and account management endpoints:
 - `POST /generate-new-access-token` — refresh access token with refresh token cookie
 - `POST /login` — authenticate and set auth cookies
 - `POST /forgot-password` — request a password reset OTP
-- `POST /reset-password` — reset password using OTP
-- `PATCH /update-password` — Updates current active session password while enforcing concurrent devices logout.
+- `POST /reset-password` — reset password using OTP and clear auth cookies
+- `PATCH /update-password` — update current session password and reissue auth tokens
 - `POST /logout` — logout and clear auth cookies
 - `GET /me` — get authenticated user profile
 - `DELETE /delete-my-account` — delete the logged-in account
@@ -133,6 +136,18 @@ Defined product routes are:
 - `GET /products/get-products` — list products (guest allowed)
 - `PUT /products/update-product/:id` — update a product (`vendor` only)
 - `DELETE /products/delete-product/:id` — delete a product (`vendor` or `admin`)
+
+## Cart module status
+
+The cart module exists in `Back-end/modules/cart/` but is not currently mounted in `Back-end/app.js`.
+
+Defined cart routes are:
+
+- `POST /add-to-cart` — add an item to the authenticated user's cart
+- `PATCH /update-product` — update cart item quantity
+- `DELETE /remove-from-cart` — remove an item from the cart
+- `DELETE /clear-cart` — clear the authenticated user's cart
+- `GET /get-my-cart` — get the authenticated user's cart
 
 ### Example request
 
