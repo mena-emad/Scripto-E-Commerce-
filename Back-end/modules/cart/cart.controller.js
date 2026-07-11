@@ -6,7 +6,7 @@ export const addToCart = catchAsync(async (req,res,next)=>{
     res.status(200).json({cart,message:"Product added to cart successfully",Navigate:"/cart"});
 })
 //======== update cart controller ========
-export const updateProduct = catchAsync(async (req,res,next)=>{
+export const updateCart = catchAsync(async (req,res,next)=>{
     const cart = await updateCartService(req.body.quantity,req.user._id,req.body.productId);
     res.status(200).json({cart,message:"Cart updated successfully",Navigate:"/cart"});
 })

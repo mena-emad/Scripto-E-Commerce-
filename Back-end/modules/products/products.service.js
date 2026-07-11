@@ -1,7 +1,9 @@
 import vendorModel from "../../data/models/Vendor.js";
 import productModel from "../../data/models/Product.js";
 import AppError from "../../utils/AppError.js";
+import mongoose from "mongoose";
 import cartModel from "../../data/models/Cart.js";
+import { uploadToCloudinary } from "../../utils/cloudinary.js";
 import {v2 as cloudinary} from "cloudinary";
 //======== helpers ========
 // async function  getVendorId(userId){
@@ -9,14 +11,26 @@ import {v2 as cloudinary} from "cloudinary";
 //     if(!vendor) throw new AppError("this user does not have a vendor profile",400);
 //     return vendor._id
 // }
+//======== helpers ========
+const uploadProductImages = (files)=>{
+    let filesPromises = []
+    if(files && files.length > 0){
+        filesPromises = files.map((file)=>{
+            return uploadToCloudinary(file.buffer);
+        })
+    } 
+    return Promise.all(filesPromises);
+}
+
 //======== create product service ========
 export const createProductService = async(productData,files)=>{
     if(!files || files.length === 0) throw new AppError("Product image is required",400);
     if(files && files.length > 5) throw new AppError("Only 5 images are allowed",400);
-    const images = files.map((file)=>{
+    let filesImages = await uploadProductImages(files);
+    const images = filesImages.map((file)=>{
         return {
-            url:file.path,
-            public_id:file.filename
+            url:file.url,
+            public_id:file.public_id
         }
     })
     const data = {
@@ -44,6 +58,7 @@ export const updateProductService = async(id,vendorId,productData,files)=>{
     let images = product.images;
     if(files && files.length >0){
         if(files && files.length > 5) throw new AppError("Only 5 images are allowed",400);
+        let filesImages = await uploadProductImages(files);
         if(product.images.length>0){
             for(const image of product.images){
                 if(image.public_id){
@@ -52,10 +67,10 @@ export const updateProductService = async(id,vendorId,productData,files)=>{
             }
 
         }
-        images = files.map((file)=>{
+        images = filesImages.map((file)=>{
             return {
-                url:file.path,
-                public_id:file.filename
+                url:file.url,
+                public_id:file.public_id
             }
         })
     }
@@ -74,17 +89,29 @@ export const updateProductService = async(id,vendorId,productData,files)=>{
 
 //======== delete Product ========
 export const deleteProductService = async(req)=>{
-    const product = await productModel.findById(req.params.id);
-    if(!product) throw new AppError("Product does not exist",400);
-    if(req.user.role!== "admin" && product.vendor.toString()!==String(req.vendor?._id) )throw new AppError("You are not authorized to delete this product",400);
-    await cartModel.updateMany({"products.product":req.params.id},{$pull:{products:{product:req.params.id}}})
-    if(product.images.length>0){
-        for(const image of product.images){
+    const session = await mongoose.startSession();
+    let productSafe;
+    try{
+        session.startTransaction();
+        const product = await productModel.findById(req.params.id).session(session);
+        productSafe = product;
+        if(!product) throw new AppError("Product does not exist",400);
+        if(req.user.role!== "admin" && product.vendor.toString()!==String(req.vendor?._id) )throw new AppError("You are not authorized to delete this product",400);
+        await cartModel.updateMany({"products.product":req.params.id},{$pull:{products:{product:req.params.id}}},{session});
+        await productModel.findByIdAndDelete(req.params.id).session(session);
+        await session.commitTransaction();
+    }catch(err){
+        await session.abortTransaction();
+        throw new AppError(err.message,400);
+    }finally{
+        session.endSession();
+    }
+    if(productSafe?.images?.length>0){
+        for(const image of productSafe.images){
             if(image.public_id){
                 await cloudinary.uploader.destroy(image.public_id);
             }
         }
     }
-    await productModel.findByIdAndDelete(req.params.id);
-    return product;
+    return productSafe;
 }

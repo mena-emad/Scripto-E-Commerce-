@@ -6,12 +6,14 @@ import sendEmail from "../../utils/SendEmail.js";
 import {createAT, createRT} from "../../utils/createTokens.js";
 import vendorModel from "../../data/models/Vendor.js";
 import bcrypt from "bcrypt"
+import mongoose from "mongoose";
 import jwt from "jsonwebtoken"
 import crypto from "crypto"
 import cartModel from "../../data/models/Cart.js";
+import { uploadToCloudinary } from "../../utils/cloudinary.js";
 //======== generate OTP ========
-export const generateOTPService = async(email,type)=>{
-    const user = await userModel.findOne({email}).select("+OTP +expiryOtp +lastOtpSentAt");
+export const generateOTPService = async(email,session)=>{
+    const user = await userModel.findOne({email},null,{session}).select("+OTP +expiryOtp +lastOtpSentAt");
     if(!user){
         throw new AppError("User does not exist",400);
     }
@@ -26,8 +28,7 @@ export const generateOTPService = async(email,type)=>{
     user.OTP = hashOtp;
     user.expiryOtp = Date.now() + 15*60*1000;
     user.lastOtpSentAt = Date.now();
-    await user.save();
-    sendEmail({email:user.email,OTP:otp,name:user.name,type});
+    await user.save({session});
     return otp
 }
 // ======== verifying via email ========
@@ -57,36 +58,52 @@ export const verifyEmailService = async(email,plainOtp)=>{
 }
 //======== user registeration service ========
 export const registerService = async (user,fileData)=>{
-    let message = "User registered successfully please verify your email to use the app";
-    const currentUser = await userModel.findOne({email:user.email});
-    if(currentUser){
-        throw new AppError("User already exists",400);
+    const session = await mongoose.startSession();
+    let userSafe;
+    let message;
+    try{
+        session.startTransaction();
+        message = "User registered successfully please verify your email to use the app";
+        const currentUser = await userModel.findOne({email:user.email},null,{session});
+        if(currentUser){
+            throw new AppError("User already exists",400);
+        }
+        if(user.role === "admin")
+            throw new AppError("You cannot register as admin",400);
+        const image = await uploadToCloudinary(fileData.buffer);
+        if(fileData)
+            user.image = {
+                url:image.url,
+                public_id:image.public_id
+            };
+        const [newUser] = (await userModel.create([user],{session}))
+        if(newUser.role === "vendor"){
+            message += " Vendor registration pending please wait for approval from admin";
+            const [vendor] = await vendorModel.create([{
+                storeAdress:user.storeAdress,
+                storePhone:user.storePhone,
+                storeName:newUser.name,
+                storeDescription:user.storeDescription,
+                storeLogo:newUser.image?.url||"",
+                owner:newUser._id
+            }],{session})
+        }
+        const OTP = await generateOTPService(newUser.email,session);
+        await session.commitTransaction();
+        await sendEmail({email:user.email,OTP,name:user.name,type:"verify"});
+        userSafe = newUser
+        newUser.password = undefined;
+        newUser.OTP = undefined;
+        newUser.expiryOtp = undefined;
+        newUser.lastOtpSentAt = undefined;
+
+    }catch(err){
+        await session.abortTransaction();
+        throw err;
+    }finally{
+        session.endSession();
     }
-    if(user.role === "admin")
-        throw new AppError("You cannot register as admin",400);
-    if(fileData)
-        user.image = {
-            url:fileData.path,
-            public_id:fileData.filename
-        };
-    const newUser = (await userModel.create(user));
-    if(newUser.role === "vendor"){
-        message += " Vendor registration pending please wait for approval from admin";
-        const vendor = await vendorModel.create({
-            storeAdress:user.storeAdress,
-            storePhone:user.storePhone,
-            storeName:newUser.name,
-            storeDescription:user.storeDescription,
-            storeLogo:newUser.image?.url||"",
-            owner:newUser._id
-        })
-    }
-    const OTP = await generateOTPService(newUser.email,"verify");
-    newUser.password = undefined;
-    newUser.OTP = undefined;
-    newUser.expiryOtp = undefined;
-    newUser.lastOtpSentAt = undefined;
-    return {newUser,message};
+    return {userSafe,message};
     
 }
 
@@ -99,7 +116,8 @@ export const loginService = async(email,password)=>{
     if(!isPasswordCorrect)
         throw new AppError("Incorrect password Please try again",400);
     if(!user.isVerified){
-        await generateOTPService(user.email,"verify")
+        const OTP = await generateOTPService(user.email,null);
+        await sendEmail({email:user.email,OTP,name:user.name,type:"verify"});
         throw new AppError("Please verify your email to login check your inbox",400);
 
     }
@@ -157,7 +175,8 @@ export const forgotPasswordService = async(email)=>{
     const user = await userModel.findOne({email})
     if(!user)
         throw new AppError("User does not exist",400);
-    const OTP = await generateOTPService(user.email,"reset");
+    const OTP = await generateOTPService(user.email,null);
+    await sendEmail({email:user.email,OTP,name:user.name,type:"reset"});
 }
 
 //======== resetPassword service ========
@@ -181,23 +200,51 @@ export const resetPasswordService = async(email,plainOTP,newPassword)=>{
 }
 //======== delete account service ========
 export const deleteAccountService = async(id)=>{
-    const user = await userModel.findById(id);
-    if(!user)
-        throw new AppError("User does not exist",400);
-    if(user.role==="vendor"){
-        const vendor =await vendorModel.findOne({owner:id});
-        if(vendor){
-            await cartModel.updateMany({"products.vendor":vendor._id},{$pull:{products:{vendor:vendor._id}}});
-            await productModel.deleteMany({vendor:vendor._id});
-            await vendorModel.deleteOne({owner:id});
+    const session = await mongoose.startSession();
+    let userCloudData = null
+    let productCloudData = null
+    try{
+        session.startTransaction();
+        const user = await userModel.findById(id).session(session);
+        if(!user)
+            throw new AppError("User does not exist",400);
+        if(user.role==="vendor"){
+            const vendor =await vendorModel.findOne({owner:id}).session(session);
+            if(vendor){
+                await cartModel.updateMany({"products.vendor":vendor._id},{$pull:{products:{vendor:vendor._id}}},{session});
+                const products = await productModel.find({vendor:vendor._id}).session(session);
+                productCloudData = products.map((product)=>{
+                    return product.images.map((image)=>image)
+                })
+                await productModel.deleteMany({vendor:vendor._id},{session});
+                await vendorModel.deleteOne({owner:id},{session});
+    
+            }
+        }
+    
+        await cartModel.deleteOne({user:id},{session});
+        await userModel.findByIdAndDelete(id).session(session);
+        await session.commitTransaction();
+        if(user.image&&user.image?.public_id)
+            userCloudData = user.image
 
+    }catch(err){
+        await session.abortTransaction();
+        throw new AppError(err.message,400);
+    }finally{
+        session.endSession();
+    }
+    if(userCloudData)
+        await cloudinary.uploader.destroy(userCloudData.public_id);
+    if(productCloudData){
+        for(const images of productCloudData){
+            images.forEach(async(image)=>{
+                if(image.public_id)
+                    await cloudinary.uploader.destroy(image.public_id);
+            })
         }
     }
 
-    await cartModel.deleteOne({user:id});
-    if(user.image&&user.image.public_id)
-        await cloudinary.uploader.destroy(user.image.public_id);
-    await userModel.findByIdAndDelete(id);
 }
 
 //======== toggle block account Service ========

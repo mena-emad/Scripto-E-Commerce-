@@ -1,6 +1,7 @@
 import { createProductService, getProductsService, updateProductService, deleteProductService } from "./products.service.js";
 import catchAsync from "../../utils/catchAsync.js";
 import AppError from "../../utils/appError.js";
+import {uploadToCloudinary} from "../../utils/cloudinary.js";
 //======== create product controller ========
 export const createProduct = catchAsync(async(req,res,next)=>{
     const productData = {
@@ -8,6 +9,8 @@ export const createProduct = catchAsync(async(req,res,next)=>{
         vendor:req.vendor._id,
     }
     const product = await createProductService(productData,req.files);
+    
+
     res.status(201).json({product,message:"Product created successfully",Navigate:"/vendor/products"});
 })
 //======== get products controller ========
