@@ -3,20 +3,19 @@ import productModel from "../../data/models/Product.js";
 import AppError from "../../utils/AppError.js";
 //======== calculate price ========
 const calculatePrice = async (cart)=>{
+    await cart.populate("products.product");
     if(!cart.products || cart.products.length === 0){
         cart.totalPrice = 0;
         await cart.save();
         return;
     }
-    // let totalPrice = 0 ;
-    // for(const product of cart.products){
-    //     totalPrice += product.price*product.quantity;
-    // }
+    cart.products = cart.products.filter((product)=>product.product!==null)
     let totalPrice = cart.products.reduce((acc,curr)=>{
-        return acc + curr.price*curr.quantity
+        return acc + curr.product.salePrice*curr.quantity
     },0)
     cart.totalPrice = totalPrice;    
     await cart.save();
+    await cart.populate("products.product");
 }
 //======== add to cart service ========
 export const addToCartService = async (req)=>{
@@ -26,7 +25,6 @@ export const addToCartService = async (req)=>{
     if(req.body.quantity > product.quantity) throw new AppError(`Only ${product.quantity} left in stock`,400);
     if(req.user.role === "vendor" && String(req.vendor._id) === product.vendor.toString()) throw new AppError("You cannot add your own product to cart",400);
     let cart = await cartModel.findOne({user:req.user._id});
-    const finalPrice = product.salePrice
     if(!cart){
         const cartData = {
             user:req.user._id,
@@ -34,7 +32,6 @@ export const addToCartService = async (req)=>{
                 {
                     product:req.body.productId,
                     quantity:req.body.quantity,
-                    price:finalPrice,
                     vendor:product.vendor
                 }
             ]
@@ -47,13 +44,11 @@ export const addToCartService = async (req)=>{
             cart.products.push({
                 product:req.body.productId,
                 quantity:req.body.quantity,
-                price:finalPrice,
                 vendor:product.vendor
             })
         }else{
-            if(cart.products[productIndex].quantity+req.body.quantity > product.quantity) throw new AppError(`Only ${product.quantity} left in stock`,400);
-            cart.products[productIndex].quantity += req.body.quantity;
-            cart.products[productIndex].price = finalPrice;
+            if(parseInt(cart.products[productIndex].quantity)+parseInt(req.body.quantity) > product.quantity) throw new AppError(`Only ${product.quantity} left in stock`,400);
+            cart.products[productIndex].quantity += parseInt(req.body.quantity);
         }
         
     }
@@ -68,11 +63,10 @@ export const updateCartService = async(quantity,userId,productId)=>{
     const product = await productModel.findById(productId);
     if(!cart) throw new AppError("Cart does not exist",400);
     if(!product) throw new AppError("Product does not exist",400);
-    if(quantity > product.quantity) throw new AppError(`Only ${product.quantity} left in stock`,400);
     const productIndex = cart.products.findIndex((product)=>product.product.toString()===productId.toString());
     if(productIndex === -1) throw new AppError("Product does not exist in cart",400);
+    if(quantity > product.quantity) throw new AppError(`Only ${product.quantity} left in stock`,400);
     cart.products[productIndex].quantity = quantity;
-    cart.products[productIndex].price = product.salePrice;
     await calculatePrice(cart);
     return cart;
 }
@@ -98,17 +92,13 @@ export const clearCartService = async(userId)=>{
 
 // ========= get my cart service ========
 export const getMyCartService = async(userId)=>{
-    let cart = await cartModel.findOne({user:userId}).populate("products.product");
+    let cart = await cartModel.findOne({user:userId});
     if(!cart) {
         return {
             products:[],
             totalPrice:0
         }
     }
-    let hasProductDeleted = cart.products.some((product)=>product.product === null)
-    if(hasProductDeleted){
-        cart.products = cart.products.filter((product)=>product.product !== null);
-        await calculatePrice(cart);
-    }
+    await calculatePrice(cart);
     return cart;
 }

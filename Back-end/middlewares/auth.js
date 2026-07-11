@@ -22,7 +22,7 @@ export const protect = catchAsync(async(req,res,next)=>{
             return next(new AppError("Token expired please login again",401));
         return next(new AppError("Invalid token Please login again",401));
     }
-    const currentUser = await userModel.findById(decoded.id);
+    const currentUser = await userModel.findById(decoded.id).select("+passwordChangedAt");
     if(!currentUser)
         return next(new AppError("User does not exist please signup",401));
     if(currentUser.passwordChangedAfter(decoded.iat))

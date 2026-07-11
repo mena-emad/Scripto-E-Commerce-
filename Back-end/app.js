@@ -13,6 +13,7 @@ import sanitize from "mongo-sanitize";
 // 🛣️ Internal Modules & Utils
 // ==========================================
 import authRouter from "./modules/auth/auth.routes.js";
+import cartRouter from "./modules/cart/cart.routes.js";
 import gerror from "./utils/gerror.js";
 import productRouter from "./modules/products/products.routes.js";
 
@@ -67,7 +68,8 @@ app.use((req,res,next)=>{
 
 // ========= Authentication Routes =========
 app.use("/products",productRouter);
-app.use("/", authRouter);
+app.use("/cart",cartRouter)
+app.use("/auth", authRouter);
 
 /**
 ||||||||||||||||||||||||||||||||||||||||||||

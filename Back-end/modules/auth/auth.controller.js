@@ -15,8 +15,8 @@ const setCookies = (res,refreshToken,accessToken)=>{
 
 //======== user registeration controller ========
 export const register = catchAsync(async(req,res,next)=>{
-    const {newUser,message} = await registerService(req.body,req.file);
-    res.status(201).json({newUser,message,Navigate:"/verify-otp"});
+    const {userSafe,message} = await registerService(req.body,req.file);
+    res.status(201).json({userSafe,message,Navigate:"/verify-otp"});
 })
 //======== verify email controller ========
 export const verifyEmail = catchAsync(async (req,res,next)=>{

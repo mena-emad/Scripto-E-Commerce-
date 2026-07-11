@@ -1,5 +1,5 @@
 import express from "express"
-import { addToCart, updateProduct , removeFromCart,clearCart, getMyCart} from "./cart.controller.js"
+import { addToCart , removeFromCart,clearCart, getMyCart, updateCart} from "./cart.controller.js"
 import validation from "../../middlewares/validation.js"
 import {protect} from "../../middlewares/auth.js"
 import { cartJoi , removeFromCartJoi} from "./cart.validation.js"
@@ -8,7 +8,7 @@ const cartRouter = express.Router();
 //======== add to cart routes =========
 cartRouter.post("/add-to-cart",protect,validation(cartJoi),addToCart)
 //======== update cart routes =========
-cartRouter.patch("/update-product",protect,validation(cartJoi),updateProduct)
+cartRouter.patch("/update-cart",protect,validation(cartJoi),updateCart)
 //======== delete cart routes =========
 cartRouter.delete("/remove-from-cart",protect,validation(removeFromCartJoi),removeFromCart)
 
