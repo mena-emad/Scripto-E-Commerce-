@@ -18,6 +18,7 @@ The current implementation includes authentication, email verification, password
 - ✅ Vendor-specific product creation and updates
 - ✅ Product listing, update, and deletion
 - ✅ Cart add, update, remove, clear, and fetch operations
+- ✅ Order placement through authenticated checkout
 - ✅ Secure cookie-based authentication and token refresh
 - ✅ Cloudinary-based image upload support
 - ✅ Request validation with Joi
@@ -49,6 +50,7 @@ E-Commerce/
 │   ├── modules/
 │   │   ├── auth/
 │   │   ├── cart/
+│   │   ├── orders/
 │   │   └── products/
 │   └── utils/
 │       ├── AppError.js
@@ -124,6 +126,7 @@ The backend currently mounts routes under these base paths:
 - `/auth` for authentication and account management
 - `/products` for product operations
 - `/cart` for cart operations
+- `/orders` for order placement
 
 ### Authentication routes
 
@@ -161,6 +164,14 @@ The backend currently mounts routes under these base paths:
 | DELETE | `/cart/remove-from-cart` | Remove an item from the cart | Authenticated |
 | DELETE | `/cart/clear-cart` | Clear the user cart | Authenticated |
 | GET | `/cart/get-my-cart` | Get the current cart | Authenticated |
+
+---
+
+### Order routes
+
+| Method | Endpoint | Description | Access |
+| ------ | -------- | ----------- | ------ |
+| POST | `/orders/make-order` | Place a new order | Authenticated |
 
 ---
 

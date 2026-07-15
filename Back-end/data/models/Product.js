@@ -59,6 +59,11 @@ const productSchema = new mongoose.Schema({
         type: Boolean,
         default: false
     },
+    isActive: {
+        type: String,
+        enum:["Active","out of stock","held"],
+        default: true
+    },
     discount:{
         percentage:{
             type: Number,

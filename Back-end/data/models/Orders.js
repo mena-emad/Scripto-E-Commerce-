@@ -6,6 +6,10 @@ const parentOrderSchema = new mongoose.Schema({
         ref: "User",
         required: true
     },
+    totalPrice:{
+        type: Number,
+        required: true
+    },
     totalAmount: {
         type: Number,
         required: true
@@ -23,7 +27,29 @@ const parentOrderSchema = new mongoose.Schema({
         type: String,
         enum: ["COD", "Card"],
         required: true
-    }
+    },
+    products:[
+        {
+            product: {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: "Product",
+                required: true
+            },
+            quantity: {
+                type: Number,
+                required: true
+            },
+            vendor: {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: "Vendor",
+                required: true
+            },
+            price: {
+                type: Number,
+                required: true
+            }
+        }
+    ]
 }, { timestamps: true });
 
 
@@ -59,7 +85,15 @@ const subOrderSchema = new mongoose.Schema({
                 required:true
             },
         }
-    ]
+    ],
+    totalPrice:{
+        type:Number,
+        required:true
+    },
+    totalAmount: {
+        type: Number,
+        required: true
+    }
 })
 export const parentOrderModel = mongoose.model("ParentOrder", parentOrderSchema);
 export const subOrderModel = mongoose.model("SubOrder", subOrderSchema);
