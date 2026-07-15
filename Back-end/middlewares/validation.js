@@ -15,4 +15,16 @@ const validation = (joiSchema)=>{
     
 }
 
+export const internalValidation = (joiSchema , body)=>{
+    return (req,res,next)=>{
+        if(!body || Object.keys(body).length ===0) return next(new AppError("No data found",400))
+        const {error} = joiSchema.validate(body,{abortEarly:false})
+        if(error) {
+            const errors= error.details.map(e=>e.message).join(", ");
+            return next(new AppError(errors,400))
+        }
+        next()
+    }
+}
+
 export default validation

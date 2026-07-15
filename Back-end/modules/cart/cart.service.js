@@ -9,10 +9,13 @@ const calculatePrice = async (cart)=>{
         await cart.save();
         return;
     }
-    cart.products = cart.products.filter((product)=>product.product!==null)
-    let totalPrice = cart.products.reduce((acc,curr)=>{
-        return acc + curr.product.salePrice*curr.quantity
-    },0)
+    cart.products = cart.products.filter((product)=>product.product!==null );
+    let totalPrice = 0;
+    for(const item of cart.products){
+        const salePrice = item.product.salePrice || item.product.price;
+        item.price = salePrice;
+        totalPrice += (salePrice * item.quantity);
+    }
     cart.totalPrice = totalPrice;    
     await cart.save();
     await cart.populate("products.product");
