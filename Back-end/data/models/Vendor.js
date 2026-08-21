@@ -10,7 +10,14 @@ const vendorSchema = new mongoose.Schema({
         required: true
     },
     storeLogo: {
-        type: String,
+        url: {
+            type: String,
+            required: true
+        },
+        public_id: {
+            type: String,
+            required: true
+        }
     },
     isApproved: {
         type: Boolean,

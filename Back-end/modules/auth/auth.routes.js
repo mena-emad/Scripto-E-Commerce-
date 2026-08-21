@@ -42,14 +42,14 @@ authRouter.post("/reset-password",validation(resetPasswordJoi),resetPassword);
 ||||||||||||||||||
 ||||||||||||||||||
 **/
-authRouter.use(protect);
-authRouter.post("/logout" , logout);
-authRouter.patch('/update-password',validation(updatePassowrdJoi),updatePassword);
-authRouter.delete("/delete-my-account",deleteMyAccount)
-authRouter.get("/me",getMe)
-authRouter.use(restrictTo("admin"));
-authRouter.delete("/delete-account/:id",deleteAccount);
-authRouter.patch("/block-account/:id",toggleblockAccount);
+
+authRouter.post("/logout" , protect,logout);
+authRouter.patch('/update-password',protect,validation(updatePassowrdJoi),updatePassword);
+authRouter.delete("/delete-my-account",protect,deleteMyAccount)
+authRouter.get("/me",protect,getMe)
+
+authRouter.delete("/delete-account/:id",protect,restrictTo("admin"),deleteAccount);
+authRouter.patch("/block-account/:id",protect,restrictTo("admin"),toggleblockAccount);
 
 export default authRouter
 
