@@ -1,0 +1,3313 @@
+openapi: 3.0.0
+info:
+  title: Scripto API
+  version: 1.0.0
+  description: Official REST API documentation for Scripto, a multi-vendor
+    e-commerce platform. Provides secure endpoints for authentication, users,
+    vendors, products, orders, and administration.
+servers:
+  - url: http://localhost:3000/api/v1
+    description: Local development server
+
+paths:
+  /statics:
+    get:
+      tags:
+        - Admin - Overview
+      summary: Retrieve aggregated system statistics for the admin dashboard.
+      description: This endpoint provides a comprehensive overview of the system's
+        current state, including total sales, total orders, total products,
+        total users, total vendors, and counts/lists of pending products and
+        vendors. It requires an authenticated admin user to access and is
+        paginated for pending items.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: pages
+          in: query
+          description: Page number for paginating pending products and vendors. Defaults
+            to 1 if not provided.
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: limit
+          in: query
+          description: Number of items per page for pending products and vendors. Defaults
+            to 15 if not provided.
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            default: 15
+      responses:
+        "200":
+          description: Successfully retrieved system statistics.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  statics:
+                    $ref: "#/components/schemas/AdminStatics"
+        "401":
+          description: Unauthorized. Authentication token is missing or invalid.
+        "403":
+          description: Forbidden. User does not have the necessary 'admin' role.
+        "500":
+          description: Internal server error.
+  /vendor/{id}:
+    get:
+      tags:
+        - Admin - Vendor Management
+      summary: Retrieve detailed information for a specific vendor.
+      description: This endpoint allows an admin to fetch all available details for a
+        vendor by their unique ID. It populates information about the vendor's
+        owner (name, email, image) to provide a complete profile. Access is
+        restricted to authenticated admin users.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          description: The unique identifier of the vendor.
+          required: true
+          schema:
+            type: string
+            pattern: ^[0-9a-fA-F]{24}$
+      responses:
+        "200":
+          description: Successfully retrieved vendor details.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  vendorDetails:
+                    $ref: "#/components/schemas/VendorDetails"
+        "400":
+          description: Bad Request. Vendor does not exist or invalid ID format.
+        "401":
+          description: Unauthorized. Authentication token is missing or invalid.
+        "403":
+          description: Forbidden. User does not have the necessary 'admin' role.
+        "500":
+          description: Internal server error.
+  /user/{id}:
+    get:
+      tags:
+        - Admin - User Management
+      summary: Retrieve detailed information for a specific user.
+      description: This endpoint enables an admin to obtain comprehensive details for
+        a user based on their unique ID. It fetches the user's profile
+        information. Access is strictly limited to authenticated admin users.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          description: The unique identifier of the user.
+          required: true
+          schema:
+            type: string
+            pattern: ^[0-9a-fA-F]{24}$
+      responses:
+        "200":
+          description: Successfully retrieved user details.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  userDetails:
+                    $ref: "#/components/schemas/UserDetails"
+        "400":
+          description: Bad Request. User does not exist or invalid ID format.
+        "401":
+          description: Unauthorized. Authentication token is missing or invalid.
+        "403":
+          description: Forbidden. User does not have the necessary 'admin' role.
+        "500":
+          description: Internal server error.
+  /product/{id}:
+    get:
+      tags:
+        - Admin - Product Management
+      summary: Retrieve detailed information for a specific product.
+      description: This endpoint allows an admin to fetch complete details for a
+        product using its unique ID. It provides all stored product attributes,
+        including approval status. Only authenticated admin users are authorized
+        to access this information.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          description: The unique identifier of the product.
+          required: true
+          schema:
+            type: string
+            pattern: ^[0-9a-fA-F]{24}$
+      responses:
+        "200":
+          description: Successfully retrieved product details.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  productDetails:
+                    $ref: "#/components/schemas/ProductDetails"
+        "400":
+          description: Bad Request. Product does not exist or invalid ID format.
+        "401":
+          description: Unauthorized. Authentication token is missing or invalid.
+        "403":
+          description: Forbidden. User does not have the necessary 'admin' role.
+        "500":
+          description: Internal server error.
+  /approve-vendor/{id}:
+    patch:
+      tags:
+        - Admin - Vendor Management
+      summary: Approve a vendor account.
+      description: This endpoint allows an admin to approve a pending vendor account
+        by setting its `isApproved` status to true. It first verifies the
+        vendor's existence and ensures they are not already approved before
+        making the update. This operation is exclusively for authenticated admin
+        users.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          description: The unique identifier of the vendor to be approved.
+          required: true
+          schema:
+            type: string
+            pattern: ^[0-9a-fA-F]{24}$
+      responses:
+        "200":
+          description: Vendor successfully approved.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  vendor:
+                    $ref: "#/components/schemas/VendorDetails"
+        "400":
+          description: Bad Request. Vendor does not exist, is already approved, or invalid
+            ID format.
+        "401":
+          description: Unauthorized. Authentication token is missing or invalid.
+        "403":
+          description: Forbidden. User does not have the necessary 'admin' role.
+        "500":
+          description: Internal server error.
+  /users:
+    get:
+      tags:
+        - Admin - User Management
+      summary: Retrieve a paginated list of all regular users.
+      description: This endpoint provides a list of all users with the 'user' role. It
+        supports pagination and allows searching by user name or email,
+        performing a case-insensitive match (starting with for name, containing
+        for email). Only authenticated admin users can access this list.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: pages
+          in: query
+          description: Page number for pagination. Defaults to 1 if not provided.
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: limit
+          in: query
+          description: Number of users per page. Defaults to 15 if not provided.
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            default: 15
+        - name: search
+          in: query
+          description: A search keyword to filter users by name (starts with) or email
+            (contains). Special regex characters in the search term are
+            automatically escaped by the server.
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Successfully retrieved list of users.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  users:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/UserListItem"
+                  totalPages:
+                    type: integer
+        "401":
+          description: Unauthorized. Authentication token is missing or invalid.
+        "403":
+          description: Forbidden. User does not have the necessary 'admin' role.
+        "500":
+          description: Internal server error.
+  /vendors:
+    get:
+      tags:
+        - Admin - Vendor Management
+      summary: Retrieve a paginated list of all vendor accounts.
+      description: This endpoint provides a list of all registered vendor accounts. It
+        supports pagination and allows searching by `storeName`, performing a
+        case-insensitive match (starts with). Only authenticated admin users can
+        access this list.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: pages
+          in: query
+          description: Page number for pagination. Defaults to 1 if not provided.
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: limit
+          in: query
+          description: Number of vendors per page. Defaults to 15 if not provided.
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            default: 15
+        - name: search
+          in: query
+          description: A search keyword to filter vendors by store name (starts with).
+            Special regex characters in the search term are automatically
+            escaped by the server.
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Successfully retrieved list of vendors.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  vendors:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/VendorListItem"
+                  totalPages:
+                    type: integer
+        "401":
+          description: Unauthorized. Authentication token is missing or invalid.
+        "403":
+          description: Forbidden. User does not have the necessary 'admin' role.
+        "500":
+          description: Internal server error.
+  /products:
+    get:
+      tags:
+        - Vendor Products
+      summary: Retrieve a list of all products belonging to the authenticated vendor.
+      description: This endpoint provides an authenticated and approved vendor with a
+        list of all products they have registered. It leverages the `protect`
+        and `restrictToVendorApproved` middlewares for security. The `vendorId`
+        is extracted from the authenticated user context, and
+        `vendorProductService.getMyProduct` queries the database for all
+        products associated with that vendor ID.
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: Successful retrieval of the vendor's products.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  products:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Product"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "403":
+          $ref: "#/components/responses/ForbiddenError"
+        "500":
+          $ref: "#/components/responses/ServerError"
+  /approve-product/{id}:
+    patch:
+      tags:
+        - Admin - Product Management
+      summary: Approve a product for sale.
+      description: This endpoint allows an admin to approve a product, making it
+        visible and available for sale on the platform. It verifies the
+        product's existence and ensures it's not already approved before
+        updating its `isApproved` status to true. This action requires an
+        authenticated admin user.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          description: The unique identifier of the product to be approved.
+          required: true
+          schema:
+            type: string
+            pattern: ^[0-9a-fA-F]{24}$
+      responses:
+        "200":
+          description: Product successfully approved.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Product approved successfully
+                  product:
+                    $ref: "#/components/schemas/ProductDetails"
+        "400":
+          description: Bad Request. Product does not exist, is already approved, or
+            invalid ID format.
+        "401":
+          description: Unauthorized. Authentication token is missing or invalid.
+        "403":
+          description: Forbidden. User does not have the necessary 'admin' role.
+        "500":
+          description: Internal server error.
+  /signup:
+    post:
+      tags:
+        - Authentication
+      summary: Registers a new user account.
+      description: This endpoint handles the registration of new users, allowing them
+        to sign up as either a 'user' or 'vendor'. It processes a profile image
+        upload via `multipart/form-data`, validates user input (name, email,
+        password, role, and additional vendor details if applicable) using Joi
+        schemas. Upon successful registration, a verification OTP is generated
+        and sent to the user's email address, and a `userSafe` object (excluding
+        sensitive data) is returned. If the user registers as a 'vendor', a
+        pending vendor profile is also created awaiting admin approval.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                profileImage:
+                  type: string
+                  format: binary
+                  description: Optional profile image for the user. Accepts image files (e.g.,
+                    JPG, PNG).
+                name:
+                  type: string
+                  description: User's full name.
+                  example: John Doe
+                email:
+                  type: string
+                  format: email
+                  description: Unique email address for the user.
+                  example: john.doe@example.com
+                password:
+                  type: string
+                  format: password
+                  description: User's password. Must be at least 8 characters long and contain at
+                    least one uppercase letter, one lowercase letter, one
+                    number, and one special character.
+                  pattern: ^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$
+                confirmPassword:
+                  type: string
+                  format: password
+                  description: Confirmation of the user's password, must match the 'password'
+                    field.
+                  example: StrongPass123!
+                role:
+                  type: string
+                  enum:
+                    - user
+                    - vendor
+                  default: user
+                  description: The role of the user, either 'user' for general customers or
+                    'vendor' for sellers.
+                  example: user
+                storeAdress:
+                  type: string
+                  description: Required if role is 'vendor'. The physical address of the vendor's
+                    store.
+                  example: 123 Main St, Anytown, USA
+                storePhone:
+                  type: string
+                  description: Required if role is 'vendor'. The contact phone number for the
+                    vendor's store.
+                  example: "+15551234567"
+                storeDescription:
+                  type: string
+                  description: Required if role is 'vendor'. A brief description of the vendor's
+                    store.
+                  example: Selling quality handmade crafts.
+              required:
+                - name
+                - email
+                - password
+                - confirmPassword
+      responses:
+        "201":
+          description: User registered successfully, please verify email. If role is
+            vendor, approval pending.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/MessageResponse"
+                  - type: object
+                    properties:
+                      userSafe:
+                        $ref: "#/components/schemas/UserResponse"
+                      Navigate:
+                        type: string
+                        description: Suggested next navigation path.
+                        example: /verify-otp
+        "400":
+          description: Bad Request. This can be due to validation errors (e.g., invalid
+            email, weak password, mismatched passwords), a user already existing
+            with the provided email, attempting to register as an admin, or an
+            OTP rate limit being exceeded if the user already exists and an OTP
+            was recently sent.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Internal Server Error. An unexpected error occurred on the server.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /verify-otp:
+    post:
+      tags:
+        - Authentication
+      summary: Verifies a user's email using a One-Time Password (OTP).
+      description: This endpoint allows users to verify their email address by
+        providing an OTP that was previously sent. The system validates the
+        provided email and OTP against stored records, ensuring the OTP is
+        correct and has not expired. Upon successful verification, the user's
+        `isVerified` status is updated, and new `refreshToken` and `accessToken`
+        JWTs are generated and set as HTTP-only cookies, effectively logging the
+        user in. Sensitive OTP data is then cleared from the user's record.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VerifyEmail"
+      responses:
+        "200":
+          description: Email verified successfully and user logged in. Access and refresh
+            tokens are set as HTTP-only cookies.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/MessageResponse"
+                  - type: object
+                    properties:
+                      user:
+                        $ref: "#/components/schemas/UserResponse"
+                      Navigate:
+                        type: string
+                        description: Suggested next navigation path.
+                        example: / or /home
+        "400":
+          description: Bad Request. This indicates issues such as an invalid or expired
+            OTP, the user not existing, or validation errors for the provided
+            email or OTP.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Internal Server Error. An unexpected error occurred on the server.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /generate-otp:
+    post:
+      tags:
+        - Authentication
+        - Password Management
+      summary: Generates and sends an OTP to a user's email for verification or reset.
+      description: This endpoint allows a user to request a new One-Time Password
+        (OTP) to be sent to their registered email address. This OTP can be used
+        for email verification or password reset processes. The system performs
+        validation on the provided email and checks for a rate limit (currently
+        2 minutes) to prevent abuse. If an OTP has been sent recently, the user
+        will be asked to wait. A successful request results in an OTP being
+        generated, saved to the user's profile with an expiry, and sent via
+        email.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GenerateOTP"
+      responses:
+        "200":
+          description: OTP sent successfully to the provided email.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+        "400":
+          description: Bad Request. This can occur if the user's email does not exist in
+            the system, if an OTP request rate limit has been exceeded, or due
+            to validation errors for the email input.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Internal Server Error. An unexpected error occurred on the server.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /generate-new-access-token:
+    post:
+      tags:
+        - Authentication
+      summary: Generates a new access token using a valid refresh token.
+      description: This endpoint is used to refresh an expired `accessToken` using a
+        valid `refreshToken`. It reads the `refreshToken` from the HTTP-only
+        cookies. If the `refreshToken` is valid, a new `accessToken` and a new
+        `refreshToken` are generated and set as HTTP-only cookies. The old
+        `refreshToken` is removed from the user's session history, and the new
+        one is added. This mechanism helps maintain continuous user sessions
+        without requiring re-login frequently.
+      responses:
+        "200":
+          description: New access token and refresh token generated and set as cookies.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/MessageResponse"
+                  - $ref: "#/components/schemas/AccessTokenResponse"
+        "400":
+          description: Bad Request. This could indicate the user associated with the
+            refresh token no longer exists.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Unauthorized. This happens if no `refreshToken` cookie is present,
+            or if the provided `refreshToken` is invalid or expired, prompting
+            the user to log in again.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Internal Server Error. An unexpected error occurred on the server.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /login:
+    post:
+      tags:
+        - Authentication
+      summary: Authenticates a user and issues JWT tokens.
+      description: This endpoint allows users to log in using their email and
+        password. It validates the credentials, checks if the user's email is
+        verified, and ensures the account is not blocked. Upon successful
+        authentication, a `refreshToken` and an `accessToken` are generated and
+        set as HTTP-only cookies. If the email is not verified, an OTP is
+        resent, and an error message is returned prompting the user to verify
+        their email first.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserLogin"
+      responses:
+        "200":
+          description: Login successful. Access and refresh tokens are set as HTTP-only
+            cookies.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/MessageResponse"
+                  - type: object
+                    properties:
+                      user:
+                        $ref: "#/components/schemas/UserResponse"
+                      Navigate:
+                        type: string
+                        description: Suggested next navigation path.
+                        example: / or /home
+        "400":
+          description: Bad Request. Possible reasons include user not found, incorrect
+            password, unverified email (with a new OTP sent), a blocked account,
+            or validation errors for email/password.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Internal Server Error. An unexpected error occurred on the server.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /forgot-password:
+    post:
+      tags:
+        - Password Management
+      summary: Initiates the forgot password process by sending an OTP.
+      description: This endpoint allows users to initiate the password reset process.
+        It takes an email address, validates it, and checks if a user with that
+        email exists. If found, an OTP for password reset is generated, saved to
+        the user's profile, and sent to their email. A rate limit is applied to
+        prevent excessive OTP requests. The response indicates that the OTP has
+        been sent.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ForgotPassword"
+      responses:
+        "200":
+          description: OTP sent successfully for password reset.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/MessageResponse"
+                  - type: object
+                    properties:
+                      Navigate:
+                        type: string
+                        description: Suggested next navigation path.
+                        example: /reset-password
+        "400":
+          description: Bad Request. Reasons include the user's email not existing in the
+            system, an OTP rate limit being exceeded, or validation errors for
+            the email input.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Internal Server Error. An unexpected error occurred on the server.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /reset-password:
+    post:
+      tags:
+        - Password Management
+      summary: Resets a user's password using an OTP.
+      description: This endpoint allows a user to reset their password using a
+        previously sent OTP. It requires the user's email, the OTP, and the new
+        password along with its confirmation. The system validates the input,
+        verifies the OTP's correctness and expiry. If successful, the user's
+        password is updated, their `passwordChangedAt` timestamp is refreshed,
+        all active refresh tokens are invalidated (forcing re-login), and
+        `refreshToken` and `accessToken` cookies are cleared. The user is then
+        prompted to log in with their new password.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ResetPassword"
+      responses:
+        "200":
+          description: Password reset successfully. User's tokens are invalidated, and
+            cookies are cleared, requiring a fresh login.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/MessageResponse"
+                  - type: object
+                    properties:
+                      Navigate:
+                        type: string
+                        description: Suggested next navigation path.
+                        example: /Login
+        "400":
+          description: Bad Request. Possible reasons include the user's email not
+            existing, an invalid or expired OTP, or validation errors for the
+            new password fields.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Internal Server Error. An unexpected error occurred on the server.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /logout:
+    post:
+      tags:
+        - Authentication
+      summary: Logs out the currently authenticated user.
+      description: This endpoint allows an authenticated user to log out. It requires
+        an active session, identified by the presence of a `refreshToken`
+        cookie. Upon successful logout, the current `refreshToken` is removed
+        from the user's stored refresh tokens, and both the `refreshToken` and
+        `accessToken` HTTP-only cookies are cleared from the client, effectively
+        ending the user's session.
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Logout successful. Access and refresh token cookies are cleared.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/MessageResponse"
+                  - type: object
+                    properties:
+                      currentUser:
+                        $ref: "#/components/schemas/UserResponse"
+                      Navigate:
+                        type: string
+                        description: Suggested next navigation path.
+                        example: /Login
+        "400":
+          description: Bad Request. This indicates that the user associated with the token
+            could not be found.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Unauthorized. This occurs if the user is not logged in (e.g., no
+            `refreshToken` cookie is present) or the authentication token is
+            invalid.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Internal Server Error. An unexpected error occurred on the server.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /update-password:
+    patch:
+      tags:
+        - Password Management
+        - Account Management
+      summary: Allows an authenticated user to update their password.
+      description: This endpoint enables an authenticated user to change their
+        password. It requires the user to provide their current password, a new
+        password, and confirm the new password. The input is validated using Joi
+        schemas to ensure the current password is correct and the new password
+        meets complexity requirements and matches its confirmation. Upon
+        successful update, all existing refresh tokens for the user are
+        invalidated, and a new `refreshToken` and `accessToken` are generated
+        and set as HTTP-only cookies, ensuring a fresh session with the updated
+        credentials.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdatePassword"
+      responses:
+        "200":
+          description: Password updated successfully. New access and refresh tokens are
+            set as HTTP-only cookies.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/MessageResponse"
+                  - type: object
+                    properties:
+                      Navigate:
+                        type: string
+                        description: Suggested next navigation path.
+                        example: / or /home
+        "400":
+          description: Bad Request. Possible reasons include an incorrect current
+            password, new password not meeting complexity requirements,
+            mismatched new passwords, or validation errors.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Unauthorized. This occurs if the user is not authenticated or the
+            authentication token is invalid.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Internal Server Error. An unexpected error occurred on the server.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /delete-my-account:
+    delete:
+      tags:
+        - Account Management
+      summary: Allows an authenticated user to delete their own account.
+      description: This endpoint provides functionality for an authenticated user to
+        permanently delete their account. This is an irreversible operation. It
+        triggers a cascade deletion process that removes the user's profile, any
+        associated vendor information (if the user was a vendor), all products
+        uploaded by that vendor, and their shopping cart. All profile and
+        product images associated with the account are also deleted from
+        Cloudinary. Upon successful deletion, the user's `refreshToken` and
+        `accessToken` cookies are cleared, ending their session.
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Account deleted successfully. All associated data and cookies are
+            cleared.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/MessageResponse"
+                  - type: object
+                    properties:
+                      Navigate:
+                        type: string
+                        description: Suggested next navigation path.
+                        example: /Login
+        "400":
+          description: Bad Request. This can occur if the user's ID from the token is not
+            found, or if there's an issue during the cascade deletion process.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Unauthorized. This occurs if the user is not authenticated or the
+            authentication token is invalid.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Internal Server Error. An unexpected error occurred on the server.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /me:
+    get:
+      tags:
+        - Account Management
+      summary: Retrieves the profile information of the authenticated user.
+      description: This endpoint fetches and returns the detailed profile information
+        of the currently authenticated user. It populates additional
+        `vendorInfo` if the user's role is 'vendor'. Sensitive data such as
+        password and refresh tokens are excluded from the response. This allows
+        users to view their own account details securely.
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: User profile retrieved successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user:
+                    $ref: "#/components/schemas/UserResponse"
+        "400":
+          description: Bad Request. This may occur if the user ID derived from the token
+            does not correspond to an existing user.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Unauthorized. This occurs if the user is not authenticated or the
+            authentication token is invalid.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Internal Server Error. An unexpected error occurred on the server.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /delete-account/{id}:
+    delete:
+      tags:
+        - Account Management
+      summary: Allows an administrator to delete any user account by ID.
+      description: This endpoint enables an administrator to permanently delete any
+        user account using their unique ID. This operation is irreversible and
+        performs a cascade deletion similar to `delete-my-account`, removing the
+        user's profile, associated vendor data, products, cart, and all related
+        images from Cloudinary. This endpoint is protected and restricted to
+        users with the 'admin' role.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The unique identifier of the user account to be deleted.
+          schema:
+            type: string
+          example: 651a7008ae6b281f00a50f7f
+      responses:
+        "200":
+          description: Account deleted successfully.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+        "400":
+          description: Bad Request. This can occur if the provided user ID is not found,
+            or if there's an issue during the cascade deletion process.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Unauthorized. This occurs if the user is not authenticated.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Forbidden. This occurs if the authenticated user does not have the
+            'admin' role.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Internal Server Error. An unexpected error occurred on the server.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /block-account/{id}:
+    patch:
+      tags:
+        - Account Management
+      summary: Allows an administrator to block or unblock a user account.
+      description: This endpoint provides functionality for an administrator to toggle
+        the `isBlocked` status of a user account. If an account is blocked, the
+        user will be unable to log in. This endpoint is protected and restricted
+        to users with the 'admin' role. It takes a user ID as a path parameter
+        and updates their blocked status accordingly, returning a message
+        indicating the new status.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The unique identifier of the user account to block or unblock.
+          schema:
+            type: string
+          example: 651a7008ae6b281f00a50f7f
+      responses:
+        "200":
+          description: Account blocked or unblocked successfully.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+        "400":
+          description: Bad Request. This can occur if the provided user ID is not found.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Unauthorized. This occurs if the user is not authenticated.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Forbidden. This occurs if the authenticated user does not have the
+            'admin' role.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Internal Server Error. An unexpected error occurred on the server.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /add-to-cart:
+    post:
+      tags:
+        - Cart
+      summary: Adds a product to the user's shopping cart.
+      description: >-
+        This endpoint allows an authenticated user to add a specified product
+        with a given quantity to their cart. It performs several checks:
+
+        - Verifies if the product exists and is approved.
+
+        - Ensures the requested quantity does not exceed the product's available
+        stock.
+
+        - Prevents vendors from adding their own products to the cart.
+
+        - If the product is already in the cart, its quantity is updated;
+        otherwise, it's added as a new item. The cart's total price is
+        recalculated after the operation.
+
+        Requires user authentication (`protect` middleware).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AddToCartRequest"
+      responses:
+        "200":
+          description: Product added to cart successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  cart:
+                    $ref: "#/components/schemas/CartResponse"
+                  message:
+                    type: string
+                    example: Product added to cart successfully
+                  Navigate:
+                    type: string
+                    example: /cart
+        "400":
+          description: Bad Request. Invalid product ID, quantity, or business logic
+            validation failed (e.g., product not found, out of stock, vendor
+            adding own product).
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized. Authentication token is missing or invalid.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal Server Error. Something went wrong on the server.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /update-cart:
+    patch:
+      tags:
+        - Cart
+      summary: Updates the quantity of a specific product in the user's shopping cart.
+      description: >-
+        This endpoint allows an authenticated user to change the quantity of an
+        existing product in their cart. It validates the request against
+        available product stock.
+
+        - Checks if the cart and product exist.
+
+        - Verifies if the product is actually in the user's cart.
+
+        - Ensures the new quantity does not exceed the product's available
+        stock.
+
+        - Updates the product's quantity and recalculates the cart's total
+        price.
+
+        Requires user authentication (`protect` middleware).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateCartRequest"
+      responses:
+        "200":
+          description: Cart updated successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  cart:
+                    $ref: "#/components/schemas/CartResponse"
+                  message:
+                    type: string
+                    example: Cart updated successfully
+                  Navigate:
+                    type: string
+                    example: /cart
+        "400":
+          description: Bad Request. Invalid product ID, quantity, or business logic
+            validation failed (e.g., cart not found, product not in cart, out of
+            stock).
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized. Authentication token is missing or invalid.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal Server Error. Something went wrong on the server.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /remove-from-cart:
+    delete:
+      tags:
+        - Cart
+      summary: Removes a specific product from the user's shopping cart.
+      description: >-
+        This endpoint allows an authenticated user to remove a specified product
+        from their cart.
+
+        - Checks if the cart exists for the user.
+
+        - Verifies if the product exists within the user's cart.
+
+        - If found, the product is removed from the cart's product list, and the
+        cart's total price is recalculated.
+
+        Requires user authentication (`protect` middleware).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RemoveFromCartRequest"
+      responses:
+        "200":
+          description: Product removed from cart successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  cart:
+                    $ref: "#/components/schemas/CartResponse"
+                  deletedProduct:
+                    $ref: "#/components/schemas/CartItem"
+                  message:
+                    type: string
+                    example: Product removed from cart successfully
+                  Navigate:
+                    type: string
+                    example: /cart
+        "400":
+          description: Bad Request. Invalid product ID or business logic validation failed
+            (e.g., cart not found, product not in cart).
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized. Authentication token is missing or invalid.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal Server Error. Something went wrong on the server.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /clear-cart:
+    delete:
+      tags:
+        - Cart
+      summary: Clears all products from the user's shopping cart.
+      description: >-
+        This endpoint allows an authenticated user to empty their entire
+        shopping cart.
+
+        - It finds the user's cart and removes all products from it.
+
+        - The cart's total price is reset to zero.
+
+        Requires user authentication (`protect` middleware).
+      responses:
+        "200":
+          description: Cart cleared successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  cart:
+                    $ref: "#/components/schemas/CartResponse"
+                  message:
+                    type: string
+                    example: Cart cleared successfully
+                  Navigate:
+                    type: string
+                    example: /cart
+        "400":
+          description: Bad Request. Business logic validation failed (e.g., cart not found).
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized. Authentication token is missing or invalid.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal Server Error. Something went wrong on the server.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /get-my-cart:
+    get:
+      tags:
+        - Cart
+      summary: Retrieves the authenticated user's shopping cart details.
+      description: >-
+        This endpoint fetches the entire shopping cart for the currently
+        authenticated user.
+
+        - If a cart exists, it populates the product details and recalculates
+        the total price.
+
+        - If no cart is found for the user, it returns an empty cart structure.
+
+        Requires user authentication (`protect` middleware).
+      responses:
+        "200":
+          description: Cart fetched successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  cart:
+                    $ref: "#/components/schemas/CartResponse"
+                  message:
+                    type: string
+                    example: Cart fetched successfully
+        "401":
+          description: Unauthorized. Authentication token is missing or invalid.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal Server Error. Something went wrong on the server.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /make-order:
+    post:
+      tags:
+        - Orders
+      summary: Places a new order for the authenticated user by processing items in
+        their shopping cart.
+      description: This endpoint allows an authenticated user to finalize an order. It
+        first validates the user's shipping address and chosen payment method
+        from the request body. Subsequently, it retrieves the user's current
+        shopping cart, performs rigorous checks on each product's existence,
+        approval status, stock levels, and ensures that users cannot order their
+        own products. The service then initiates a MongoDB transaction to create
+        a parent order, multiple sub-orders (one for each unique vendor
+        involved), updates product quantities in inventory by decrementing
+        stock, and finally clears the user's shopping cart. If any validation or
+        stock check fails, or if a database operation encounters an issue, the
+        entire transaction is aborted, and an appropriate error is returned.
+        This endpoint requires an `Authorization` header with a valid JWT Bearer
+        token.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MakeOrderRequest"
+      responses:
+        "200":
+          description: Order placed successfully.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OrderSuccessResponse"
+        "400":
+          description: Bad Request. Possible reasons include an empty cart, product issues
+            (not found, not approved, out of stock, insufficient quantity,
+            ordering own product), or invalid request body data.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized. Authentication token is missing or invalid.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal Server Error. An unexpected error occurred during order
+            processing.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /get-products:
+    get:
+      tags:
+        - Products
+      summary: Retrieve a list of approved products with optional pagination.
+      description: This endpoint allows users (guests, buyers, vendors, or admins) to
+        fetch a paginated list of all approved products. It can include query
+        parameters for pagination (`page` and `limit`). The response includes
+        information about the user's role if authenticated (e.g., `isBuyer`,
+        `isAdmin`, `isVendor`) and the products themselves, populated with
+        vendor details.
+      parameters:
+        - name: page
+          in: query
+          description: Page number for pagination
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: limit
+          in: query
+          description: Number of products per page
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            default: 10
+      responses:
+        "200":
+          description: Successfully retrieved list of products.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetProductsResponse"
+        "400":
+          description: Bad Request - Invalid query parameters.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal Server Error - An unexpected error occurred.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /add-product:
+    post:
+      tags:
+        - Products
+      summary: Create a new product by an authorized and approved vendor.
+      description: This endpoint allows an authenticated user with the 'vendor' role,
+        who is also approved, to create a new product. It requires a valid JWT
+        token, role-based authorization, and vendor approval middleware checks.
+        The request body expects product details (name, quantity, price,
+        description, category, and an optional discount object) along with up to
+        5 product images. Images are uploaded to Cloudinary, and the vendor ID
+        is automatically assigned from the authenticated session. A
+        'productImage' field of type 'array of files' is expected for image
+        uploads. If no images are provided or more than 5 images are uploaded,
+        the request will be rejected.
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: "#/components/schemas/ProductCreateRequest"
+      responses:
+        "201":
+          description: Product created successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  product:
+                    $ref: "#/components/schemas/Product"
+                  message:
+                    type: string
+                    example: Product created successfully
+                  Navigate:
+                    type: string
+                    example: /vendor/products
+        "400":
+          description: Bad Request - Missing product image, too many images, or validation
+            error.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized - User is not authenticated.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Forbidden - User is not a 'vendor', or is not an approved vendor.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal Server Error - An unexpected error occurred.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /update-product/{id}:
+    put:
+      tags:
+        - Products
+      summary: Update an existing product by its ID, restricted to the owning vendor.
+      description: This endpoint allows an authenticated and approved 'vendor' to
+        update one of their own products. It requires a valid JWT token,
+        'vendor' role authorization, and vendor approval. The `id` in the path
+        specifies the product to be updated. The request body can contain
+        partial product data (name, quantity, price, description, category,
+        discount) as all fields are optional for an update. If new
+        `productImage` files are provided, existing product images associated
+        with the product will be deleted from Cloudinary and replaced with the
+        new ones (up to 5 images). Unauthorized attempts to update another
+        vendor's product will result in a 400 error.
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          description: The unique identifier of the product to update.
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: "#/components/schemas/ProductUpdateRequest"
+      responses:
+        "200":
+          description: Product updated successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  updatedProduct:
+                    $ref: "#/components/schemas/Product"
+                  message:
+                    type: string
+                    example: Product updated successfully
+                  Navigate:
+                    type: string
+                    example: /vendor/products
+        "400":
+          description: Bad Request - Product not found, not authorized to update this
+            product, too many images, or validation error.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized - User is not authenticated.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Forbidden - User is not a 'vendor' or is not an approved vendor.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal Server Error - An unexpected error occurred.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /delete-product/{id}:
+    delete:
+      tags:
+        - Products
+      summary: Delete a product by its ID, restricted to the owning vendor or an admin.
+      description: "This endpoint allows an authenticated user with either the
+        'vendor' (and approved) or 'admin' role to delete a product. It requires
+        a valid JWT token, and role-based authorization middleware checks. The
+        `id` in the path specifies the product to be deleted. Vendors can only
+        delete their own products, while admins can delete any product. The
+        deletion process is wrapped in a Mongoose transaction to ensure
+        atomicity: the product is first removed from all associated carts, then
+        the product document itself is deleted. Finally, all images related to
+        the product are deleted from Cloudinary. If the product does not exist,
+        or the user is not authorized, a 400 error is returned."
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          description: The unique identifier of the product to delete.
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Product deleted successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Product deleted successfully
+        "400":
+          description: Bad Request - Product not found, or not authorized to delete this
+            product.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized - User is not authenticated.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Forbidden - User is not a 'vendor'/'admin' or is not an approved
+            vendor.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal Server Error - An unexpected error occurred during
+            transaction or Cloudinary deletion.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /profile:
+    get:
+      tags:
+        - Vendor Profile
+      summary: Retrieve the authenticated vendor's profile information.
+      description: This endpoint allows an authenticated and approved vendor to fetch
+        their complete profile details. It utilizes the `protect` and
+        `restrictToVendorApproved` middlewares to ensure only authorized vendors
+        can access their information. The `vendorId` is extracted from the
+        authenticated request object, and `vendorProfileService.getMyProfile` is
+        called to retrieve the vendor's data from the database.
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: Successful retrieval of vendor profile.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  vendor:
+                    $ref: "#/components/schemas/VendorProfile"
+        "400":
+          description: Bad Request. For example, if the vendor ID extracted from the token
+            does not correspond to an existing vendor.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                success: false
+                message: Vendor does not exist
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "403":
+          $ref: "#/components/responses/ForbiddenError"
+        "500":
+          $ref: "#/components/responses/ServerError"
+    patch:
+      tags:
+        - Vendor Profile
+      summary: Update the authenticated vendor's profile details.
+      description: This endpoint enables an authenticated and approved vendor to
+        update their profile information, including store name, email, phone,
+        description, and address. It also supports uploading a new store logo.
+        It uses the `protect` and `restrictToVendorApproved` middlewares for
+        access control. The `validation` middleware, powered by
+        `vendorUpdateProfileJoi`, ensures that the request body adheres to the
+        defined schema before the update operation. If a file is provided
+        (`req.file`), it is uploaded to Cloudinary, and the URL/public_id are
+        saved. The `vendorProfileService.updateVendorProfile` handles the
+        database update.
+      security:
+        - BearerAuth: []
+      requestBody:
+        description: Vendor profile update details, including optional file upload for
+          store logo.
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                storeName:
+                  type: string
+                  description: The new name of the vendor's store.
+                  example: My Awesome Store
+                storeEmail:
+                  type: string
+                  format: email
+                  description: The new email address for the vendor's store. This field is
+                    required and must be a valid email format if present.
+                storePhone:
+                  type: string
+                  description: The new phone number for the vendor's store.
+                storeDescription:
+                  type: string
+                  description: A new description for the vendor's store.
+                storeAddress:
+                  type: string
+                  description: The new physical address of the vendor's store.
+                storeLogo:
+                  type: string
+                  format: binary
+                  description: The new logo image file for the vendor's store.
+              required:
+                - storeEmail
+      responses:
+        "200":
+          description: Vendor profile updated successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Vendor profile updated successfully
+                  vendor:
+                    $ref: "#/components/schemas/VendorProfile"
+        "400":
+          description: Bad Request. Validation failure (e.g., invalid email format,
+            missing required fields) or if the vendor ID does not exist.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                Validation Error:
+                  value:
+                    success: false
+                    message: '"storeEmail" must be a valid email'
+                Vendor Not Found:
+                  value:
+                    success: false
+                    message: Vendor does not exist
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "403":
+          $ref: "#/components/responses/ForbiddenError"
+        "500":
+          $ref: "#/components/responses/ServerError"
+  /orders:
+    get:
+      tags:
+        - Vendor Orders
+      summary: Retrieve a list of all sub-orders associated with the authenticated
+        vendor's products.
+      description: This endpoint allows an authenticated and approved vendor to view
+        all sub-orders related to their products. It uses `protect` and
+        `restrictToVendorApproved` for access control. The `vendorId` is taken
+        from the authenticated request, and `vendorOrderService.getMyOrders`
+        retrieves the sub-order details, populating associated product
+        information.
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: Successful retrieval of the vendor's sub-orders.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  orders:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/SubOrder"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "403":
+          $ref: "#/components/responses/ForbiddenError"
+        "500":
+          $ref: "#/components/responses/ServerError"
+  /orders/{orderId}:
+    get:
+      tags:
+        - Vendor Orders
+      summary: Retrieve detailed information for a specific sub-order belonging to the
+        authenticated vendor.
+      description: This endpoint allows an authenticated and approved vendor to fetch
+        comprehensive details for a particular sub-order, identified by
+        `orderId`. It ensures authorization through `protect` and
+        `restrictToVendorApproved` middlewares. The `vendorId` and `orderId` are
+        used to query `vendorOrderService.getOrderDetails`, which includes
+        populating associated product details. If the order is not found or does
+        not belong to the vendor, a 404 response is returned.
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: orderId
+          in: path
+          description: The unique identifier of the sub-order.
+          required: true
+          schema:
+            type: string
+            pattern: ^[0-9a-fA-F]{24}$
+      responses:
+        "200":
+          description: Successful retrieval of sub-order details.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  order:
+                    $ref: "#/components/schemas/SubOrder"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "403":
+          $ref: "#/components/responses/ForbiddenError"
+        "404":
+          description: Not Found. If the sub-order with the given `orderId` does not exist
+            or does not belong to the authenticated vendor.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                success: false
+                message: Order does not exist
+        "500":
+          $ref: "#/components/responses/ServerError"
+  /orders/{orderId}/status:
+    patch:
+      tags:
+        - Vendor Orders
+      summary: Update the status of a specific sub-order belonging to the
+        authenticated vendor.
+      description: This endpoint enables an authenticated and approved vendor to
+        change the status of a specific sub-order, identified by `orderId`. It
+        requires the `protect` and `restrictToVendorApproved` middlewares for
+        access control. The `vendorId`, `orderId`, and the new `status` from the
+        request body are passed to `vendorOrderService.updateOrdersStatus`. This
+        service updates the sub-order's status and subsequently calls
+        `updateParentOrderStatus` to update the `parentOrderModel`'s
+        `globalStatus` based on the statuses of all its sub-orders (e.g., if all
+        sub-orders are 'Delivered', the parent order becomes 'Delivered').
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: orderId
+          in: path
+          description: The unique identifier of the sub-order to update.
+          required: true
+          schema:
+            type: string
+            pattern: ^[0-9a-fA-F]{24}$
+      requestBody:
+        description: The new status for the sub-order.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OrderUpdateStatus"
+      responses:
+        "200":
+          description: Order status updated successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Order status updated successfully
+        "400":
+          description: Bad Request. If the `orderId` does not exist or if the provided
+            `status` is invalid.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                success: false
+                message: Order does not exist
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "403":
+          $ref: "#/components/responses/ForbiddenError"
+        "500":
+          $ref: "#/components/responses/ServerError"
+  /dashboard/stats:
+    get:
+      tags:
+        - Vendor Dashboard
+      summary: Retrieve overall dashboard statistics for the authenticated vendor.
+      description: This endpoint provides an authenticated and approved vendor with
+        key performance indicators for their business. It uses the `protect` and
+        `restrictToVendorApproved` middlewares for access control. The
+        `vendorId` is used by `vendorDashboardService.getDashboardStats` to
+        aggregate various metrics, including total orders, orders by status
+        (delivered, shipped, processing, cancelled, pending), and total revenue
+        from delivered orders.
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: Successful retrieval of dashboard statistics.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  stats:
+                    $ref: "#/components/schemas/DashboardStats"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "403":
+          $ref: "#/components/responses/ForbiddenError"
+        "500":
+          $ref: "#/components/responses/ServerError"
+  /dashboard/products/stats:
+    get:
+      tags:
+        - Vendor Dashboard
+      summary: Retrieve product-related statistics for the authenticated vendor.
+      description: This endpoint provides an authenticated and approved vendor with
+        statistics pertaining to their product listings. It's protected by the
+        `protect` and `restrictToVendorApproved` middlewares. The `vendorId` is
+        utilized by `vendorDashboardService.getProductsSatas` to fetch counts
+        such as total products, total approved products, and total pending
+        products awaiting approval.
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: Successful retrieval of product statistics.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  stats:
+                    $ref: "#/components/schemas/ProductStats"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "403":
+          $ref: "#/components/responses/ForbiddenError"
+        "500":
+          $ref: "#/components/responses/ServerError"
+  /dashboard/orders/recent:
+    get:
+      tags:
+        - Vendor Dashboard
+      summary: Retrieve a paginated list of the authenticated vendor's most recent
+        sub-orders.
+      description: This endpoint allows an authenticated and approved vendor to fetch
+        a paginated list of their recent sub-orders. It's secured by `protect`
+        and `restrictToVendorApproved` middlewares. The `vendorId` and query
+        parameters (`pages`, `limit`) are passed to
+        `vendorDashboardService.getRecentOrders`. This service applies
+        pagination to fetch a subset of recent orders and calculates the total
+        number of order pages available. Orders are sorted by creation date in
+        descending order.
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: pages
+          in: query
+          description: Page number for pagination.
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: limit
+          in: query
+          description: Number of items per page.
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            default: 15
+      responses:
+        "200":
+          description: Successful retrieval of recent orders.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RecentOrdersResponse"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "403":
+          $ref: "#/components/responses/ForbiddenError"
+        "500":
+          $ref: "#/components/responses/ServerError"
+components:
+  schemas:
+    AdminStatics:
+      type: object
+      description: Aggregated statistics for the admin dashboard.
+      properties:
+        totalPendingPages:
+          type: integer
+          description: Total number of pages for pending products, based on the `limit`
+            query parameter.
+        totalPendingVendorsPages:
+          type: integer
+          description: Total number of pages for pending vendors, based on the `limit`
+            query parameter.
+        totalSalesResult:
+          type: number
+          format: float
+          description: Total sales revenue from delivered orders.
+        totalOrders:
+          type: integer
+          description: Total count of all orders in the system.
+        totalProducts:
+          type: integer
+          description: Total count of all products in the system.
+        totalVendors:
+          type: integer
+          description: Total count of registered vendor accounts.
+        totalUsers:
+          type: integer
+          description: Total count of registered regular user accounts.
+        totalPendingProducts:
+          type: integer
+          description: Total count of products awaiting approval.
+        pendingProducts:
+          type: array
+          description: A paginated list of products currently awaiting approval.
+          items:
+            $ref: "#/components/schemas/ProductPreview"
+        totalPendingVendors:
+          type: integer
+          description: Total count of vendor accounts awaiting approval.
+        pendingVendors:
+          type: array
+          description: A paginated list of vendor accounts currently awaiting approval.
+          items:
+            $ref: "#/components/schemas/VendorPreview"
+      required:
+        - totalPendingPages
+        - totalPendingVendorsPages
+        - totalSalesResult
+        - totalOrders
+        - totalProducts
+        - totalVendors
+        - totalUsers
+        - totalPendingProducts
+        - pendingProducts
+        - totalPendingVendors
+        - pendingVendors
+    VendorDetails:
+      type: object
+      description: Detailed information about a vendor, including owner details.
+      properties:
+        _id:
+          type: string
+          description: Unique identifier of the vendor.
+          pattern: ^[0-9a-fA-F]{24}$
+        storeName:
+          type: string
+          description: Name of the vendor's store.
+        storeLogo:
+          type: string
+          format: uri
+          description: URL to the vendor's store logo.
+        owner:
+          type: object
+          description: Details of the user account that owns this vendor.
+          properties:
+            _id:
+              type: string
+              pattern: ^[0-9a-fA-F]{24}$
+            name:
+              type: string
+            email:
+              type: string
+              format: email
+            image:
+              type: string
+              format: uri
+          required:
+            - _id
+            - name
+            - email
+            - image
+        isApproved:
+          type: boolean
+          description: Indicates if the vendor account has been approved by an
+            administrator.
+        createdAt:
+          type: string
+          format: date-time
+          description: Timestamp when the vendor account was created.
+        updatedAt:
+          type: string
+          format: date-time
+          description: Timestamp when the vendor account was last updated.
+      required:
+        - _id
+        - storeName
+        - owner
+        - isApproved
+        - createdAt
+        - updatedAt
+    UserDetails:
+      type: object
+      description: Detailed information about a user.
+      properties:
+        _id:
+          type: string
+          description: Unique identifier of the user.
+          pattern: ^[0-9a-fA-F]{24}$
+        name:
+          type: string
+          description: User's full name.
+        email:
+          type: string
+          format: email
+          description: User's email address.
+        image:
+          type: string
+          format: uri
+          description: URL to the user's profile image.
+        role:
+          type: string
+          enum:
+            - user
+            - vendor
+            - admin
+          description: The role of the user.
+        createdAt:
+          type: string
+          format: date-time
+          description: Timestamp when the user account was created.
+        updatedAt:
+          type: string
+          format: date-time
+          description: Timestamp when the user account was last updated.
+      required:
+        - _id
+        - name
+        - email
+        - role
+        - createdAt
+        - updatedAt
+    ProductDetails:
+      type: object
+      description: Detailed information about a product.
+      properties:
+        _id:
+          type: string
+          description: Unique identifier of the product.
+          pattern: ^[0-9a-fA-F]{24}$
+        name:
+          type: string
+          description: Name of the product.
+        description:
+          type: string
+          description: Detailed description of the product.
+        price:
+          type: number
+          format: float
+          description: Price of the product.
+        images:
+          type: array
+          description: URLs of product images.
+          items:
+            type: string
+            format: uri
+        isApproved:
+          type: boolean
+          description: Indicates if the product has been approved by an administrator.
+        category:
+          type: string
+          description: The category the product belongs to (e.g., 'Electronics',
+            'Clothing').
+        vendor:
+          type: string
+          description: ID of the vendor who owns this product.
+          pattern: ^[0-9a-fA-F]{24}$
+        createdAt:
+          type: string
+          format: date-time
+          description: Timestamp when the product was created.
+        updatedAt:
+          type: string
+          format: date-time
+          description: Timestamp when the product was last updated.
+      required:
+        - _id
+        - name
+        - price
+        - images
+        - isApproved
+        - vendor
+        - createdAt
+        - updatedAt
+    UserListItem:
+      type: object
+      description: A summarized view of a user for list displays.
+      properties:
+        _id:
+          type: string
+          description: Unique identifier of the user.
+          pattern: ^[0-9a-fA-F]{24}$
+        name:
+          type: string
+          description: User's full name.
+        email:
+          type: string
+          format: email
+          description: User's email address.
+        image:
+          type: string
+          format: uri
+          description: URL to the user's profile image.
+      required:
+        - _id
+        - name
+        - email
+        - image
+    VendorListItem:
+      type: object
+      description: A summarized view of a vendor for list displays.
+      properties:
+        _id:
+          type: string
+          description: Unique identifier of the vendor.
+          pattern: ^[0-9a-fA-F]{24}$
+        storeName:
+          type: string
+          description: Name of the vendor's store.
+        storeLogo:
+          type: string
+          format: uri
+          description: URL to the vendor's store logo.
+      required:
+        - _id
+        - storeName
+        - storeLogo
+    ProductListItem:
+      type: object
+      description: A summarized view of a product for list displays.
+      properties:
+        _id:
+          type: string
+          description: Unique identifier of the product.
+          pattern: ^[0-9a-fA-F]{24}$
+        name:
+          type: string
+          description: Name of the product.
+        price:
+          type: number
+          format: float
+          description: Price of the product.
+        images:
+          type: array
+          description: URLs of product images.
+          items:
+            type: string
+            format: uri
+      required:
+        - _id
+        - name
+        - price
+        - images
+    ProductPreview:
+      type: object
+      description: A lightweight view of a product, typically for lists of pending items.
+      properties:
+        _id:
+          type: string
+          description: Unique identifier of the product.
+          pattern: ^[0-9a-fA-F]{24}$
+        name:
+          type: string
+          description: Name of the product.
+        price:
+          type: number
+          format: float
+          description: Price of the product.
+        images:
+          type: array
+          description: URLs of product images.
+          items:
+            type: string
+            format: uri
+        isApproved:
+          type: boolean
+          description: Approval status of the product.
+          example: false
+      required:
+        - _id
+        - name
+        - price
+        - images
+        - isApproved
+    VendorPreview:
+      type: object
+      description: A lightweight view of a vendor, typically for lists of pending items.
+      properties:
+        _id:
+          type: string
+          description: Unique identifier of the vendor.
+          pattern: ^[0-9a-fA-F]{24}$
+        storeName:
+          type: string
+          description: Name of the vendor's store.
+        storeLogo:
+          type: string
+          format: uri
+          description: URL to the vendor's store logo.
+        isApproved:
+          type: boolean
+          description: Approval status of the vendor.
+          example: false
+      required:
+        - _id
+        - storeName
+        - storeLogo
+        - isApproved
+    UserRegister:
+      type: object
+      properties:
+        name:
+          type: string
+          description: User's full name.
+          example: John Doe
+        email:
+          type: string
+          format: email
+          description: Unique email address for the user.
+          example: john.doe@example.com
+        password:
+          type: string
+          format: password
+          description: User's password. Must be at least 8 characters long and contain at
+            least one uppercase letter, one lowercase letter, one number, and
+            one special character.
+          pattern: ^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$
+        confirmPassword:
+          type: string
+          format: password
+          description: Confirmation of the user's password, must match the 'password' field.
+          example: StrongPass123!
+        role:
+          type: string
+          enum:
+            - user
+            - vendor
+          default: user
+          description: The role of the user, either 'user' for general customers or
+            'vendor' for sellers.
+          example: user
+        storeAdress:
+          type: string
+          description: Required if role is 'vendor'. The physical address of the vendor's
+            store.
+          example: 123 Main St, Anytown, USA
+        storePhone:
+          type: string
+          description: Required if role is 'vendor'. The contact phone number for the
+            vendor's store.
+          example: "+15551234567"
+        storeDescription:
+          type: string
+          description: Required if role is 'vendor'. A brief description of the vendor's
+            store.
+          example: Selling quality handmade crafts.
+      required:
+        - name
+        - email
+        - password
+        - confirmPassword
+    VerifyEmail:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+          description: The email address of the user to verify.
+          example: john.doe@example.com
+        otp:
+          type: string
+          length: 6
+          description: The 6-digit One-Time Password received by email.
+          example: "123456"
+      required:
+        - email
+        - otp
+    GenerateOTP:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+          description: The email address to which the OTP should be sent.
+          example: john.doe@example.com
+      required:
+        - email
+    UserLogin:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+          description: The email address of the user attempting to log in.
+          example: john.doe@example.com
+        password:
+          type: string
+          format: password
+          description: The password of the user attempting to log in.
+          example: StrongPass123!
+      required:
+        - email
+        - password
+    ForgotPassword:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+          description: The email address for which the password reset OTP should be sent.
+          example: john.doe@example.com
+      required:
+        - email
+    ResetPassword:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+          description: The email address associated with the account to reset.
+          example: john.doe@example.com
+        otp:
+          type: string
+          length: 6
+          description: The 6-digit One-Time Password received for password reset.
+          example: "654321"
+        password:
+          type: string
+          format: password
+          description: The new password for the user. Must be at least 8 characters long
+            and contain at least one uppercase letter, one lowercase letter, one
+            number, and one special character.
+          pattern: ^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$
+        confirmPassword:
+          type: string
+          format: password
+          description: Confirmation of the new password, must match the 'password' field.
+          example: NewStrongPass456!
+      required:
+        - email
+        - otp
+        - password
+        - confirmPassword
+    UpdatePassword:
+      type: object
+      properties:
+        currentPassword:
+          type: string
+          format: password
+          description: The user's current password.
+          example: StrongPass123!
+        newPassword:
+          type: string
+          format: password
+          description: The new password for the user. Must be at least 8 characters long
+            and contain at least one uppercase letter, one lowercase letter, one
+            number, and one special character.
+          pattern: ^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$
+        confirmPassword:
+          type: string
+          format: password
+          description: Confirmation of the new password, must match the 'newPassword' field.
+          example: NewStrongPass456!
+      required:
+        - currentPassword
+        - newPassword
+        - confirmPassword
+    MessageResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          description: A descriptive message about the operation's outcome.
+          example: Operation successful.
+      required:
+        - message
+    Error:
+      type: object
+      properties:
+        status:
+          type: string
+          example: fail
+        message:
+          type: string
+          example: User already exists
+        statusCode:
+          type: integer
+          example: 400
+    UserResponse:
+      type: object
+      properties:
+        _id:
+          type: string
+          description: The unique identifier of the user.
+          example: 651a7008ae6b281f00a50f7f
+        name:
+          type: string
+          description: The user's full name.
+          example: John Doe
+        email:
+          type: string
+          format: email
+          description: The user's email address.
+          example: john.doe@example.com
+        role:
+          type: string
+          enum:
+            - user
+            - vendor
+            - admin
+          description: The role of the user.
+          example: user
+        isVerified:
+          type: boolean
+          description: Indicates if the user's email has been verified.
+          example: true
+        isBlocked:
+          type: boolean
+          description: Indicates if the user's account is currently blocked by an
+            administrator.
+          example: false
+        image:
+          type: object
+          properties:
+            url:
+              type: string
+              format: url
+              description: URL of the user's profile image.
+              example: https://res.cloudinary.com/example/image.jpg
+            public_id:
+              type: string
+              description: Public ID of the image on Cloudinary.
+              example: users/profiles/some_id
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+          description: Timestamp when the user account was created.
+          example: 2023-10-01T10:00:00.000Z
+        updatedAt:
+          type: string
+          format: date-time
+          description: Timestamp when the user account was last updated.
+          example: 2023-10-01T10:00:00.000Z
+        vendorInfo:
+          type: object
+          description: Vendor-specific information, populated if the user is a vendor.
+          properties:
+            _id:
+              type: string
+              example: 651a7008ae6b281f00a50f7g
+            storeName:
+              type: string
+              example: John's Crafts
+            storeAdress:
+              type: string
+              example: 123 Main St, Anytown
+            isApproved:
+              type: boolean
+              example: true
+      required:
+        - _id
+        - name
+        - email
+        - role
+        - isVerified
+        - isBlocked
+    AccessTokenResponse:
+      type: object
+      properties:
+        currentUser:
+          $ref: "#/components/schemas/UserResponse"
+        message:
+          type: string
+          example: Access token generated successfully
+        Navigate:
+          type: string
+          example: / or /home
+    ProductId:
+      type: string
+      pattern: ^[0-9a-fA-F]{24}$
+      description: MongoDB ObjectId for a product.
+      example: "654321098765432109876543"
+    Quantity:
+      type: integer
+      format: int32
+      minimum: 1
+      description: Quantity of the product, must be a positive integer.
+      example: 2
+    AddToCartRequest:
+      type: object
+      required:
+        - productId
+        - quantity
+      properties:
+        productId:
+          $ref: "#/components/schemas/ProductId"
+        quantity:
+          $ref: "#/components/schemas/Quantity"
+      example:
+        productId: "654321098765432109876543"
+        quantity: 2
+    UpdateCartRequest:
+      type: object
+      required:
+        - productId
+        - quantity
+      properties:
+        productId:
+          $ref: "#/components/schemas/ProductId"
+        quantity:
+          $ref: "#/components/schemas/Quantity"
+      example:
+        productId: "654321098765432109876543"
+        quantity: 1
+    RemoveFromCartRequest:
+      type: object
+      required:
+        - productId
+      properties:
+        productId:
+          $ref: "#/components/schemas/ProductId"
+      example:
+        productId: "654321098765432109876543"
+    CartItemProductDetails:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: "654321098765432109876543"
+        name:
+          type: string
+          example: Example Product
+        price:
+          type: number
+          format: float
+          example: 29.99
+        salePrice:
+          type: number
+          format: float
+          example: 25
+          nullable: true
+      description: Detailed information about a product in the cart.
+    CartItem:
+      type: object
+      properties:
+        product:
+          $ref: "#/components/schemas/CartItemProductDetails"
+          description: Reference to the product details.
+        quantity:
+          type: integer
+          example: 2
+        price:
+          type: number
+          format: float
+          example: 25
+          description: Price of the product at the time of adding/last update (considering
+            sale price).
+        vendor:
+          type: string
+          pattern: ^[0-9a-fA-F]{24}$
+          description: MongoDB ObjectId of the vendor selling the product.
+          example: "654321098765432109876544"
+        _id:
+          type: string
+          example: "654321098765432109876545"
+          description: Unique ID for the cart item entry.
+      description: An item within the user's shopping cart.
+    CartResponse:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: "654321098765432109876546"
+        user:
+          type: string
+          pattern: ^[0-9a-fA-F]{24}$
+          description: MongoDB ObjectId of the user who owns the cart.
+          example: "654321098765432109876547"
+        products:
+          type: array
+          items:
+            $ref: "#/components/schemas/CartItem"
+          description: List of products in the cart.
+        totalPrice:
+          type: number
+          format: float
+          example: 50
+          description: The total calculated price of all items in the cart.
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        __v:
+          type: integer
+          example: 0
+      description: Represents the user's shopping cart structure.
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        message:
+          type: string
+          example: Something went wrong
+    ObjectId:
+      type: string
+      pattern: ^[0-9a-fA-F]{24}$
+      description: A valid MongoDB ObjectId (24 hexadecimal characters).
+    MakeOrderRequest:
+      type: object
+      required:
+        - shippingAddress
+        - paymentMethod
+      properties:
+        shippingAddress:
+          type: string
+          minLength: 10
+          maxLength: 500
+          description: The detailed address where the order should be shipped.
+        paymentMethod:
+          type: string
+          enum:
+            - COD
+            - Card
+          description: The chosen payment method for the order. 'COD' for Cash On
+            Delivery, 'Card' for card payment.
+      example:
+        shippingAddress: 123 Main St, Apt 4B, City, State, 12345
+        paymentMethod: COD
+    ProductOrderItem:
+      type: object
+      required:
+        - product
+        - quantity
+        - price
+        - vendor
+      properties:
+        product:
+          $ref: "#/components/schemas/ObjectId"
+          description: The ID of the product.
+        quantity:
+          type: integer
+          minimum: 1
+          description: The quantity of this product in the order.
+        price:
+          type: number
+          format: float
+          minimum: 0
+          description: The price per unit of the product at the time of order.
+        vendor:
+          $ref: "#/components/schemas/ObjectId"
+          description: The ID of the vendor selling this product.
+    ParentOrder:
+      type: object
+      required:
+        - _id
+        - user
+        - totalPrice
+        - totalAmount
+        - globalStatus
+        - shippingAddress
+        - paymentMethod
+        - products
+      properties:
+        _id:
+          $ref: "#/components/schemas/ObjectId"
+          description: The unique identifier of the parent order.
+        user:
+          $ref: "#/components/schemas/ObjectId"
+          description: The ID of the user who placed the order.
+        totalPrice:
+          type: number
+          format: float
+          minimum: 0
+          description: The total monetary value of all products in the parent order.
+        totalAmount:
+          type: integer
+          minimum: 0
+          description: The total number of individual product units across all items in
+            the parent order.
+        globalStatus:
+          type: string
+          enum:
+            - Pending
+            - Partially Shipped
+            - Shipped
+            - Delivered
+            - Cancelled
+          default: Pending
+          description: The overall status of the parent order, reflecting the progress of
+            all its sub-orders.
+        shippingAddress:
+          type: string
+          description: The shipping address provided by the user for this order.
+        paymentMethod:
+          type: string
+          enum:
+            - COD
+            - Card
+          description: The payment method selected by the user for this order.
+        products:
+          type: array
+          minItems: 1
+          description: A list of all products included in this parent order.
+          items:
+            $ref: "#/components/schemas/ProductOrderItem"
+        createdAt:
+          type: string
+          format: date-time
+          description: Timestamp when the order was created.
+        updatedAt:
+          type: string
+          format: date-time
+          description: Timestamp when the order was last updated.
+      example:
+        _id: 65163465134641321654a123
+        user: 65163465134641321654b456
+        totalPrice: 150.75
+        totalAmount: 3
+        globalStatus: Pending
+        shippingAddress: 123 Main St, Apt 4B, City, State, 12345
+        paymentMethod: COD
+        products:
+          - product: 65163465134641321654c789
+            quantity: 1
+            price: 50.25
+            vendor: 65163465134641321654d123
+          - product: "65163465134641321654e456"
+            quantity: 2
+            price: 50.25
+            vendor: 65163465134641321654f789
+        createdAt: 2023-10-27T10:00:00.000Z
+        updatedAt: 2023-10-27T10:00:00.000Z
+    OrderSuccessResponse:
+      type: object
+      properties:
+        order:
+          $ref: "#/components/schemas/ParentOrder"
+          description: Details of the newly placed parent order.
+        message:
+          type: string
+          example: Order placed successfully
+          description: A confirmation message indicating successful order placement.
+        Navigate:
+          type: string
+          example: /orders
+          description: A suggested path for client-side navigation after order placement.
+    Discount:
+      type: object
+      properties:
+        percentage:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 100
+          default: 0
+          description: The discount percentage (0-100).
+        isActive:
+          type: boolean
+          default: false
+          description: Indicates if the discount is currently active.
+        startDate:
+          type: string
+          format: date-time
+          nullable: true
+          default: null
+          description: The date and time when the discount starts.
+        endDate:
+          type: string
+          format: date-time
+          nullable: true
+          default: null
+          description: The date and time when the discount ends. Must be after startDate
+            if both are present.
+      default: {}
+    Image:
+      type: object
+      properties:
+        url:
+          type: string
+          format: uri
+          example: https://res.cloudinary.com/.../product_image_1.jpg
+        public_id:
+          type: string
+          example: products/product_id/image_id
+    Product:
+      type: object
+      properties:
+        _id:
+          type: string
+          pattern: ^[0-9a-fA-F]{24}$
+          example: "654321098765432109876540"
+        name:
+          type: string
+          example: Wireless Headphones
+        price:
+          type: number
+          format: float
+          example: 99.99
+        description:
+          type: string
+          example: High-quality wireless headphones with noise cancellation.
+        vendor:
+          type: string
+          pattern: ^[0-9a-fA-F]{24}$
+          example: "654321098765432109876543"
+        category:
+          type: string
+          example: Electronics
+        images:
+          type: array
+          items:
+            type: object
+            properties:
+              url:
+                type: string
+                format: url
+              public_id:
+                type: string
+        isApproved:
+          type: boolean
+          description: Approval status of the product by an administrator.
+          example: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    ProductCreateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Name of the product.
+          example: New Wireless Headset
+        quantity:
+          type: integer
+          minimum: 0
+          description: Available stock quantity of the product.
+          example: 50
+        price:
+          type: number
+          format: float
+          minimum: 0
+          description: Selling price of the product.
+          example: 79.99
+        description:
+          type: string
+          description: Detailed description of the product.
+          example: High-fidelity wireless headset with noise cancellation.
+        category:
+          type: string
+          description: Category the product belongs to (e.g., Electronics, Apparel).
+          example: Audio
+        discount:
+          $ref: "#/components/schemas/Discount"
+        productImage:
+          type: array
+          items:
+            type: string
+            format: binary
+          maxItems: 5
+          description: Up to 5 product images to upload. Each item is a file.
+      required:
+        - name
+        - quantity
+        - price
+        - description
+        - category
+        - productImage
+    ProductUpdateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Updated name of the product.
+          example: Upgraded Wireless Headset Pro
+        quantity:
+          type: integer
+          minimum: 0
+          description: Updated stock quantity of the product.
+          example: 60
+        price:
+          type: number
+          format: float
+          minimum: 0
+          description: Updated selling price of the product.
+          example: 89.99
+        description:
+          type: string
+          description: Updated detailed description of the product.
+          example: New and improved high-fidelity wireless headset with enhanced noise
+            cancellation.
+        category:
+          type: string
+          description: Updated category of the product.
+          example: Audio Accessories
+        discount:
+          $ref: "#/components/schemas/Discount"
+        productImage:
+          type: array
+          items:
+            type: string
+            format: binary
+          maxItems: 5
+          description: New product images to upload. Existing images will be replaced.
+            Each item is a file.
+    GetProductsResponse:
+      type: object
+      properties:
+        vendorId:
+          type: string
+          nullable: true
+          example: 65b214a1a5b4c3d2e1f0a9b9
+          description: The ID of the vendor if the authenticated user is a vendor.
+        isBuyer:
+          type: boolean
+          example: true
+          description: Indicates if the authenticated user has a 'buyer' role.
+        isAdmin:
+          type: boolean
+          example: false
+          description: Indicates if the authenticated user has an 'admin' role.
+        isVendor:
+          type: boolean
+          example: false
+          description: Indicates if the authenticated user has a 'vendor' role.
+        products:
+          type: array
+          items:
+            $ref: "#/components/schemas/Product"
+        message:
+          type: string
+          example: Products fetched successfully
+    VendorProfile:
+      type: object
+      properties:
+        _id:
+          type: string
+          pattern: ^[0-9a-fA-F]{24}$
+          example: "654321098765432109876543"
+        storeName:
+          type: string
+          example: My Vendor Store
+        storeEmail:
+          type: string
+          format: email
+          example: vendor@example.com
+        storePhone:
+          type: string
+          example: "+1234567890"
+        storeDescription:
+          type: string
+          example: A short description of my amazing store.
+        storeAddress:
+          type: string
+          example: 123 Market St, City, Country
+        storeLogo:
+          type: object
+          properties:
+            url:
+              type: string
+              format: url
+              example: https://res.cloudinary.com/example/image.jpg
+            public_id:
+              type: string
+              example: vendor_logos/abcdef123
+        isApproved:
+          type: boolean
+          description: Indicates if the vendor account is approved.
+          example: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    SubOrder:
+      type: object
+      properties:
+        _id:
+          type: string
+          pattern: ^[0-9a-fA-F]{24}$
+          example: "654321098765432109876541"
+        parentOrder:
+          type: string
+          pattern: ^[0-9a-fA-F]{24}$
+          description: ID of the parent order.
+        product:
+          $ref: "#/components/schemas/Product"
+        vendor:
+          type: string
+          pattern: ^[0-9a-fA-F]{24}$
+          description: ID of the vendor for this product.
+        quantity:
+          type: integer
+          example: 1
+        price:
+          type: number
+          format: float
+          description: Price of the product at the time of order.
+        totalPrice:
+          type: number
+          format: float
+          description: Total price for this sub-order (quantity * price).
+        status:
+          type: string
+          enum:
+            - Pending
+            - Processing
+            - Shipped
+            - Delivered
+            - Cancelled
+          example: Processing
+        shippingAddress:
+          type: object
+          properties:
+            address:
+              type: string
+            city:
+              type: string
+            zipCode:
+              type: string
+            country:
+              type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    OrderUpdateStatus:
+      type: object
+      required:
+        - status
+      properties:
+        status:
+          type: string
+          enum:
+            - Pending
+            - Processing
+            - Shipped
+            - Delivered
+            - Cancelled
+          description: The new status for the sub-order.
+          example: Shipped
+    DashboardStats:
+      type: object
+      properties:
+        totalOrders:
+          type: integer
+          example: 120
+        totalDelivered:
+          type: integer
+          example: 80
+        totalShipped:
+          type: integer
+          example: 20
+        totalProcessing:
+          type: integer
+          example: 10
+        totalCancelled:
+          type: integer
+          example: 5
+        totalPending:
+          type: integer
+          example: 5
+        totalRevenue:
+          type: number
+          format: float
+          example: 15000.75
+    ProductStats:
+      type: object
+      properties:
+        totalProducts:
+          type: integer
+          example: 50
+        totalApprovedProducts:
+          type: integer
+          example: 45
+        totalPendingProducts:
+          type: integer
+          example: 5
+    RecentOrdersResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        orders:
+          type: array
+          items:
+            $ref: "#/components/schemas/SubOrder"
+          description: A list of recent sub-orders.
+        orderPages:
+          type: integer
+          description: Total number of pages available for orders.
+          example: 5
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: "JWT Authorization header using the Bearer scheme. Example:
+        'Authorization: Bearer {token}'"
+  responses:
+    UnauthorizedError:
+      description: Unauthorized. Authentication token is missing or invalid.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          example:
+            success: false
+            message: You are not logged in! Please log in to get access.
+    ForbiddenError:
+      description: Forbidden. Authenticated user is not an approved vendor or does not
+        have sufficient permissions.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          example:
+            success: false
+            message: You do not have permission to perform this action.
+    ServerError:
+      description: Internal Server Error. An unexpected error occurred on the server.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          example:
+            success: false
+            message: Something went wrong on the server.

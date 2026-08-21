@@ -1,5 +1,5 @@
 import express from "express";
-import {protect, restrictTo} from "../middlewares/auth.js";
+import {protect, restrictTo} from "../../middlewares/auth.js";
 import {
     statics,
     viewVendorDetails,
@@ -8,21 +8,23 @@ import {
     approveVendor,
     users,
     vendors,
-    products
+    products,
+    approveProduct
 } from "./admin.controller.js";
 
 const adminRouter = express.Router();
 
-router.use(protect);
-router.use(restrictTo("admin"));
+adminRouter.use(protect);
+adminRouter.use(restrictTo("admin"));
 
-router.get("/statics", statics);
-router.get("/vendor/:id", viewVendorDetails);
-router.get("/user/:id", viewUserDetails);
-router.get("/product/:id", viewProductDetails);
-router.put("/approve-vendor/:id", approveVendor);
-router.get("/users", users);
-router.get("/vendors", vendors);
-router.get("/products", products);
+adminRouter.get("/statics", statics);
+adminRouter.get("/vendor/:id", viewVendorDetails);
+adminRouter.get("/user/:id", viewUserDetails);
+adminRouter.get("/product/:id", viewProductDetails);
+adminRouter.patch("/approve-vendor/:id", approveVendor);
+adminRouter.get("/users", users);
+adminRouter.get("/vendors", vendors);
+adminRouter.get("/products", products);
+adminRouter.patch("/approve-product/:id",approveProduct);
 
 export default adminRouter;

@@ -1,5 +1,5 @@
 import catchAsync from "../../utils/catchAsync.js";
-import {staticsService, viewVendorDetailsService, viewUserDetailsService, viewProductDetailsService, approveVendorService, userService, vendorService, productService} from "./admin.service.js";
+import {staticsService, viewVendorDetailsService,approveproductService, viewUserDetailsService, viewProductDetailsService, approveVendorService, userService, vendorService, productService} from "./admin.service.js";
 
 export const statics = catchAsync(async (req, res, next) => {
     const statics = await staticsService();
@@ -47,3 +47,9 @@ export const products = catchAsync(async (req, res, next) => {
     const result = await productService(query);
     res.status(200).json(result);
 });
+
+export const approveProduct = catchAsync(async (req,res,next)=>{
+    const { id } = req.params;
+    const product = await approveproductService(id);
+    res.status(200).json({message:"Product approved successfully",product});
+})

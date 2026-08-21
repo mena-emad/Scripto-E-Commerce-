@@ -112,3 +112,11 @@ export const productService = async(query)=>{
     return {products,totalPages};
 }
 
+export const approveproductService = async (id)=>{
+    const product = await productModel.findById(id);
+    if(!product) throw new AppError("Product does not exist",400);
+    if(product.isApproved) throw new AppError("Product is already approved",400);
+    product.isApproved = true;
+    await product.save({validateBeforeSave:false});
+    return product;
+}
