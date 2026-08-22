@@ -1,0 +1,100 @@
+:root {
+  --color-background: #f8fafc;
+  --color-surface: #fff;
+  --color-text-primary: #0f172a;
+  --color-text-secondary: #64748b;
+  --color-text-muted: #475569;
+  --color-border: #e2e8f0;
+  --color-input-border: #cbd5e1;
+  --color-input-background: #fff;
+  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+  color: var(--color-text-primary);
+  background: var(--color-background);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html, body, #root {
+  margin: 0;
+  min-height: 100%;
+  min-height: 100vh;
+  background: var(--color-background);
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+[data-theme='dark'] {
+  --color-background: #0f172a;
+  --color-surface: #1e293b;
+  --color-text-primary: #f8fafc;
+  --color-text-secondary: #94a3b8;
+  --color-text-muted: #cbd5e1;
+  --color-border: #334155;
+  --color-input-border: #475569;
+  --color-input-background: #1e293b;
+  color-scheme: dark;
+}
+
+[data-theme='dark'] input,
+[data-theme='dark'] textarea,
+[data-theme='dark'] select {
+  color: var(--color-text-primary) !important;
+  background: var(--color-input-background) !important;
+  border-color: var(--color-input-border) !important;
+}
+
+[data-theme='dark'] div[style*='background: rgb(255, 255, 255)'],
+[data-theme='dark'] div[style*='background: #fff'],
+[data-theme='dark'] button[style*='background: rgb(255, 255, 255)'],
+[data-theme='dark'] button[style*='background: #fff'],
+[data-theme='dark'] form[style*='background: rgb(255, 255, 255)'],
+[data-theme='dark'] aside[style*='background: rgb(255, 255, 255)'] {
+  background: var(--color-surface) !important;
+  border-color: var(--color-border) !important;
+}
+
+[data-theme='dark'] [style*='color: rgb(15, 23, 42)'],
+[data-theme='dark'] [style*='color: rgb(51, 65, 85)'],
+[data-theme='dark'] [style*='color: rgb(71, 85, 105)'],
+[data-theme='dark'] [style*='color: rgb(100, 116, 139)'] {
+  color: var(--color-text-secondary) !important;
+}
+
+[data-theme='dark'] [style*='border: 1px solid rgb(226, 232, 240)'],
+[data-theme='dark'] [style*='border-bottom: 1px solid rgb(226, 232, 240)'] {
+  border-color: var(--color-border) !important;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button {
+  font: inherit;
+}
+
+img {
+  max-width: 100%;
+  display: block;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-border);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-text-secondary);
+  border-radius: 999px;
+}
