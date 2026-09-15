@@ -1,37 +1,40 @@
 import mongoose from "mongoose";
+import productModel from "../data/models/Product.js";
 
-// Caching connection for Vercel Serverless environment
-let cached = global.mongoose;
-
-if (!cached) {
-  cached = global.mongoose = { conn: null, promise: null };
+const connectDB  = async ()=>{
+    try{
+        await mongoose.connect(process.env.MONGO_URL)
+        await productModel.updateMany(
+            { status: { $exists: false } },
+            [
+                {
+                    $set: {
+                        status: {
+                            $cond: [
+                                { $eq: ["$isActive", "out of stock"] },
+                                "out of stock",
+                                { $cond: [{ $eq: ["$isApproved", true] }, "approved", "pending"] }
+                            ]
+                        },
+                        isActive: {
+                            $cond: [
+                                { $in: ["$isActive", ["Active", "active", true]] },
+                                true,
+                                false
+                            ]
+                        }
+                    }
+                },
+                { $unset: "isApproved" }
+            ],
+            { updatePipeline: true }
+        );
+        console.log("Database connected")
+    }catch(error){
+        console.error(`Error from connect db ${error}`)
+        throw error
+    }
 }
 
-const connectDB = async () => {
-  if (cached.conn) {
-    return cached.conn;
-  }
 
-  if (!cached.promise) {
-    const opts = {
-      bufferCommands: false, // Prevents 10s buffering timeout
-    };
-
-    cached.promise = mongoose.connect(process.env.MONGO_URL, opts).then((m) => {
-      console.log("Database connected successfully");
-      return m;
-    });
-  }
-
-  try {
-    cached.conn = await cached.promise;
-  } catch (error) {
-    cached.promise = null;
-    console.error(`Error connecting to DB: ${error.message}`);
-    throw error;
-  }
-
-  return cached.conn;
-};
-
-export default connectDB;
+export default connectDB

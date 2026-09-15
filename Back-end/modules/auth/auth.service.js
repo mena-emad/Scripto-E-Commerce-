@@ -58,60 +58,53 @@ export const verifyEmailService = async(email,plainOtp)=>{
     return {user,refreshToken,accessToken};
 }
 //======== user registeration service ========
-export const registerService = async (user,fileData)=>{
-    const session = await mongoose.startSession();
+// ======== user registeration service (بدون Transactions للاختبار) ========
+export const registerService = async (user, fileData) => {
+     // التأكد من الاتصال
     let userSafe;
-    let message;
-    try{
-        session.startTransaction();
-        message = "User registered successfully please verify your email to use the app";
-        const currentUser = await userModel.findOne({email:user.email},null,{session});
-        if(currentUser){
-            throw new AppError("User already exists",400);
-        }
-        if(user.role === "admin")
-            throw new AppError("You cannot register as admin",400);
-        if(fileData){
-            const image = await uploadToCloudinary(fileData.buffer);
-            user.image = {
-                url:image.url,
-                public_id:image.public_id
-            };
-        }
-        const [newUser] = (await userModel.create([user],{session}))
-        if(newUser.role === "vendor"){
-            message += " Vendor registration pending please wait for approval from admin";
-            const [vendor] = await vendorModel.create([{
-                storeAdress:user.storeAdress,
-                storePhone:user.storePhone,
-                storeName:newUser.name,
-                storeDescription:user.storeDescription,
-                storeLogo: newUser.image
-                    ? {
-                        url: newUser.image.url,
-                        public_id: newUser.image.public_id
-                    }
-                    : null,
-                owner:newUser._id
-            }],{session})
-        }
-        const OTP = await generateOTPService(newUser.email,session);
-        await sendEmail({email:user.email,OTP,name:user.name,type:"verify"});
-        userSafe = newUser
-        newUser.password = undefined;
-        newUser.OTP = undefined;
-        newUser.expiryOtp = undefined;
-        newUser.lastOtpSentAt = undefined;
-        await session.commitTransaction();
-
-    }catch(err){
-        await session.abortTransaction();
-        throw err;
-    }finally{
-        session.endSession();
-    }
-    return {userSafe,message};
+    let message = "User registered successfully please verify your email to use the app";
     
+    // البحث مباشرة بدون session
+    const currentUser = await userModel.findOne({email: user.email});
+    if(currentUser){
+        throw new AppError("User already exists", 400);
+    }
+    if(user.role === "admin")
+        throw new AppError("You cannot register as admin", 400);
+        
+    if(fileData){
+        const image = await uploadToCloudinary(fileData.buffer);
+        user.image = {
+            url: image.url,
+            public_id: image.public_id
+        };
+    }
+    
+    // إنشاء المستخدم مباشرة
+    const newUser = await userModel.create(user);
+    
+    if(newUser.role === "vendor"){
+        message += " Vendor registration pending please wait for approval from admin";
+        await vendorModel.create({
+            storeAdress: user.storeAdress,
+            storePhone: user.storePhone,
+            storeName: newUser.name,
+            storeDescription: user.storeDescription,
+            storeLogo: newUser.image ? { url: newUser.image.url, public_id: newUser.image.public_id } : null,
+            owner: newUser._id
+        });
+    }
+    
+    const OTP = await generateOTPService(newUser.email); // تأكد من إزالة الـ session هنا أيضاً لو كانت مطلوبة
+    await sendEmail({email: user.email, OTP, name: user.name, type: "verify"});
+    
+    userSafe = newUser.toObject();
+    delete userSafe.password;
+    delete userSafe.OTP;
+    delete userSafe.expiryOtp;
+    delete userSafe.lastOtpSentAt;
+    
+    return { userSafe, message };
 }
 
 //======== login service ========
