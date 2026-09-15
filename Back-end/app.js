@@ -36,8 +36,15 @@ const app = express();
 app.use(helmet());
 
 // ========= Cross-Origin Resource Sharing =========
+const allowedOrigin = [process.env.FRONTEND_URL , "http://localhost:5173"]
 app.use(cors({
-    origin: process.env.FRONTEND_URL || "http://localhost:3000",
+    origin:(origin, callback)=>{
+        if(allowedOrigin.includes(origin)){
+            callback(null,true)
+        }else{
+            callback(new Error("Not allowed by CORS"))
+        }
+    } ,
     credentials: true
 }));
 
