@@ -2,7 +2,7 @@ import userModel from "../../data/models/User.js";
 import productModel from "../../data/models/Product.js";
 import AppError from "../../utils/AppError.js";
 import {v2 as cloudinary} from "cloudinary";
-import sendEmail from "../../utils/SendEmail.js";
+import sendEmail from "../../utils/sendEmail.js";
 import {createAT, createRT} from "../../utils/createTokens.js";
 import vendorModel from "../../data/models/Vendor.js";
 import bcrypt from "bcrypt"
