@@ -5,6 +5,7 @@ import {v2 as cloudinary} from "cloudinary";
 import sendEmail from "../../utils/sendEmail.js";
 import {createAT, createRT} from "../../utils/createTokens.js";
 import vendorModel from "../../data/models/Vendor.js";
+import connectDB from "../../config/connectDB.js";
 import bcrypt from "bcrypt"
 import mongoose from "mongoose";
 import jwt from "jsonwebtoken"
@@ -58,6 +59,7 @@ export const verifyEmailService = async(email,plainOtp)=>{
 }
 //======== user registeration service ========
 export const registerService = async (user,fileData)=>{
+    await connectDB();
     const session = await mongoose.startSession();
     let userSafe;
     let message;
