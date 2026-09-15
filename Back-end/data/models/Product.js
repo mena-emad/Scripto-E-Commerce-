@@ -55,14 +55,15 @@ const productSchema = new mongoose.Schema({
         required: true,
         min:[0,"Quantity must be greater than 0"]
     },
-    isApproved: {
-        type: Boolean,
-        default: false
-    },
     isActive: {
-        type: String,
-        enum:["Active","out of stock","held"],
+        type: Boolean,
         default: true
+    },
+    status: {
+        type: String,
+        enum: ["pending", "approved", "rejected", "out of stock"],
+        default: "pending",
+        required: true
     },
     discount:{
         percentage:{

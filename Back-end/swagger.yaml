@@ -394,7 +394,7 @@ paths:
           description: Forbidden. User does not have the necessary 'admin' role.
         "500":
           description: Internal server error.
-  /signup:
+  /auth/signup:
     post:
       tags:
         - Authentication
@@ -503,7 +503,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
-  /verify-otp:
+  /auth/verify-otp:
     post:
       tags:
         - Authentication

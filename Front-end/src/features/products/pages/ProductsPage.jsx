@@ -15,7 +15,7 @@ export default function ProductsPage({ products, categories, currentUser, onAddT
   const [search, setSearch] = useState('');
 
   const filteredProducts = useMemo(() => {
-    const approved = products.filter((product) => product.isApproved);
+    const approved = products.filter((product) => product.status === 'approved' && product.isActive === true);
     return approved.filter((product) => {
       const categoryMatch = selectedCategory === 'All' || product.category === selectedCategory;
       const searchMatch = product.name.toLowerCase().includes(search.toLowerCase()) || product.description.toLowerCase().includes(search.toLowerCase());
@@ -24,7 +24,7 @@ export default function ProductsPage({ products, categories, currentUser, onAddT
   }, [search, selectedCategory, products]);
 
   return (
-    <div style={styles.layout}>
+    <div style={styles.layout} className="responsive-sidebar-layout">
       <aside style={styles.sidebar}>
         <h3 style={{ marginTop: 0 }}>Categories</h3>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
@@ -52,12 +52,13 @@ export default function ProductsPage({ products, categories, currentUser, onAddT
           <div style={styles.productGrid}>
             {filteredProducts.map((product) => (
               <div key={product.id} style={styles.card}>
-                <img src={product.images[0]} alt={product.name} style={{ width: '100%', height: '180px', objectFit: 'cover', borderRadius: '12px', marginBottom: '0.9rem' }} />
+                <img src={product.images[0]?.url} alt={product.name} style={{ width: '100%', height: '180px', objectFit: 'cover', borderRadius: '12px', marginBottom: '0.9rem' }} />
                 <div style={{ display: 'flex', justifyContent: 'space-between', gap: '0.6rem', alignItems: 'center', marginBottom: '0.5rem' }}>
                   <strong>{product.name}</strong>
-                  <Badge tone={product.discount?.isActive ? 'success' : 'neutral'}>{product.discount?.isActive ? `${product.discount.percentage}%` : 'Stocked'}</Badge>
+                  <Badge tone={product.status === 'approved' ? 'success' : 'warning'}>{product.status || 'pending'}</Badge>
                 </div>
                 <p style={{ color: '#64748b', minHeight: '64px' }}>{product.description}</p>
+                <div style={{ color: '#475569', fontSize: '0.85rem', marginBottom: '0.8rem' }}><strong>Vendor:</strong> {product.vendor?.storeName || product.vendor?.name || product.vendor || 'Unknown vendor'}</div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.8rem' }}>
                   <strong style={{ fontSize: '1.2rem' }}>${product.price}</strong>
                   <span style={{ color: '#475569', fontSize: '0.8rem' }}>{product.quantity} in stock</span>

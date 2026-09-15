@@ -20,6 +20,11 @@ const cartSchema = new mongoose.Schema({
                 min: [1, "Quantity must be at least 1"],
                 default: 1
             },
+            price: {
+                type: Number,
+                min: [0, "Price cannot be negative"],
+                default: 0
+            },
             vendor: {
                 type: mongoose.Schema.Types.ObjectId,
                 ref: "Vendor",

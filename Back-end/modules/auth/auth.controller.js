@@ -1,4 +1,4 @@
-import { registerService,verifyEmailService,updatePasswordService ,generateOTPService,loginService,generateNewAccessTokenService,logoutService,forgotPasswordService,resetPasswordService,deleteAccountService,toggleblockAccountService,getMeService} from "./auth.service.js";
+import { registerService,verifyEmailService,updatePasswordService,updateProfileService ,generateOTPService,loginService,generateNewAccessTokenService,logoutService,forgotPasswordService,resetPasswordService,deleteAccountService,toggleblockAccountService,getMeService} from "./auth.service.js";
 import catchAsync from "../../utils/catchAsync.js";
 import AppError from "../../utils/AppError.js";
 
@@ -110,4 +110,9 @@ export const updatePassword = catchAsync(async(req,res,next)=>{
    const {accessToken,refreshToken} =  await updatePasswordService(req.user._id,req.body.currentPassword,req.body.newPassword);
     setCookies(res,refreshToken,accessToken);
     res.status(200).json({message:"Password updated successfully",Navigate:"/ or /home"});
+})
+
+export const updateProfile = catchAsync(async(req,res,next)=>{
+    const user = await updateProfileService(req.user._id, req.body, req.file);
+    res.status(200).json({user,message:"Profile updated successfully"});
 })

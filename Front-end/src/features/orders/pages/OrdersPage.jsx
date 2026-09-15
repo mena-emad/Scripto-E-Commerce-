@@ -10,7 +10,7 @@ export default function OrdersPage({ orders }) {
       <h2 style={{ marginTop: 0 }}>My orders</h2>
       <div style={{ display: 'grid', gap: '0.8rem' }}>
         {orders.map((order) => (
-          <div key={order.id} style={{ border: '1px solid #e2e8f0', borderRadius: '14px', padding: '1rem' }}>
+          <div key={order.id || order._id} style={{ border: '1px solid #e2e8f0', borderRadius: '14px', padding: '1rem' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
               <div>
                 <strong>Order #{order.id}</strong>
@@ -19,7 +19,7 @@ export default function OrdersPage({ orders }) {
               <Badge tone={order.status === 'Delivered' ? 'success' : order.status === 'Cancelled' ? 'danger' : 'warning'}>{order.status}</Badge>
             </div>
             <div style={{ marginTop: '0.9rem', display: 'grid', gap: '0.35rem' }}>
-              {order.items.map((item) => (
+              {(order.items || []).map((item) => (
                 <div key={`${order.id}-${item.productId}`} style={{ display: 'flex', justifyContent: 'space-between', color: '#475569' }}>
                   <span>{item.productName} x {item.quantity}</span>
                   <span>${item.price * item.quantity}</span>

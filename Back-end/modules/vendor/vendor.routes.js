@@ -20,6 +20,7 @@ import {
 } from "../../middlewares/auth.js";
 
 import validation from "../../middlewares/validation.js";
+import upload from "../../utils/cloudinary.js";
 
 
 const vendorRouter = express.Router();
@@ -42,6 +43,7 @@ vendorRouter.get(
 
 vendorRouter.patch(
     "/profile",
+    upload.single("storeLogo"),
     validation(vendorUpdateProfileJoi),
     updateMyProfile
 );

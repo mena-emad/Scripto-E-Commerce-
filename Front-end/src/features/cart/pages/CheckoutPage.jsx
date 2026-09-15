@@ -2,48 +2,34 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Button from '../../../components/ui/Button';
 
-export default function CheckoutPage({ cartItems, onPlaceOrder }) {
+export default function CheckoutPage({ cartItems, total = 0, onPlaceOrder }) {
   const navigate = useNavigate();
   const [form, setForm] = useState({
-    fullName: 'Customer User',
-    address: '123 Market Street',
-    city: 'Riyadh',
-    phone: '+966500000000'
+    shippingAddress: '',
+    paymentMethod: 'COD'
   });
-
-  const total = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onPlaceOrder({ ...form, total, items: cartItems });
-    navigate('/orders');
+    onPlaceOrder(form).then(() => navigate('/orders')).catch(() => {});
   };
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: '1fr 0.8fr', gap: '1.2rem' }}>
+    <div style={{ display: 'grid', gridTemplateColumns: '1fr 0.8fr', gap: '1.2rem' }} className="responsive-two-column">
       <form onSubmit={handleSubmit} style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: '18px', padding: '1.25rem' }}>
         <h2 style={{ marginTop: 0 }}>Checkout</h2>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-          <label>
-            <div style={{ marginBottom: '0.35rem', fontWeight: 600 }}>Full name</div>
-            <input value={form.fullName} onChange={(e) => setForm({ ...form, fullName: e.target.value })} style={inputStyle} />
-          </label>
-          <label>
-            <div style={{ marginBottom: '0.35rem', fontWeight: 600 }}>Phone</div>
-            <input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} style={inputStyle} />
-          </label>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }} className="responsive-form-grid">
           <label style={{ gridColumn: '1 / -1' }}>
-            <div style={{ marginBottom: '0.35rem', fontWeight: 600 }}>Address</div>
-            <input value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} style={inputStyle} />
-          </label>
-          <label>
-            <div style={{ marginBottom: '0.35rem', fontWeight: 600 }}>City</div>
-            <input value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} style={inputStyle} />
+            <div style={{ marginBottom: '0.35rem', fontWeight: 600 }}>Shipping address</div>
+            <input required value={form.shippingAddress} onChange={(e) => setForm({ ...form, shippingAddress: e.target.value })} style={inputStyle} />
           </label>
           <label>
             <div style={{ marginBottom: '0.35rem', fontWeight: 600 }}>Payment</div>
-            <input value="Cash on delivery" readOnly style={{ ...inputStyle, background: '#f8fafc' }} />
+            <select value={form.paymentMethod} onChange={(e) => setForm({ ...form, paymentMethod: e.target.value })} style={inputStyle}>
+              <option value="COD">Cash on delivery</option>
+              <option value="Card">Card</option>
+            </select>
           </label>
         </div>
 

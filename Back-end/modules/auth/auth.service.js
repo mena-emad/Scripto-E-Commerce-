@@ -70,12 +70,13 @@ export const registerService = async (user,fileData)=>{
         }
         if(user.role === "admin")
             throw new AppError("You cannot register as admin",400);
-        const image = await uploadToCloudinary(fileData.buffer);
-        if(fileData)
+        if(fileData){
+            const image = await uploadToCloudinary(fileData.buffer);
             user.image = {
                 url:image.url,
                 public_id:image.public_id
             };
+        }
         const [newUser] = (await userModel.create([user],{session}))
         if(newUser.role === "vendor"){
             message += " Vendor registration pending please wait for approval from admin";
@@ -84,18 +85,23 @@ export const registerService = async (user,fileData)=>{
                 storePhone:user.storePhone,
                 storeName:newUser.name,
                 storeDescription:user.storeDescription,
-                storeLogo:newUser.image?.url||"",
+                storeLogo: newUser.image
+                    ? {
+                        url: newUser.image.url,
+                        public_id: newUser.image.public_id
+                    }
+                    : null,
                 owner:newUser._id
             }],{session})
         }
         const OTP = await generateOTPService(newUser.email,session);
-        await session.commitTransaction();
         await sendEmail({email:user.email,OTP,name:user.name,type:"verify"});
         userSafe = newUser
         newUser.password = undefined;
         newUser.OTP = undefined;
         newUser.expiryOtp = undefined;
         newUser.lastOtpSentAt = undefined;
+        await session.commitTransaction();
 
     }catch(err){
         await session.abortTransaction();
@@ -292,5 +298,24 @@ export const updatePasswordService = async(id,currentPassword,newPassword)=>{
     currentUser.refreshTokens = undefined;
     return {accessToken,refreshToken};
 
+}
+
+export const updateProfileService = async (id, data, fileData) => {
+    const user = await userModel.findById(id);
+    if (!user) throw new AppError("User does not exist", 400);
+
+    if (data.name?.trim()) user.name = data.name.trim();
+    if (fileData) {
+        const image = await uploadToCloudinary(fileData.buffer);
+        if (user.image?.public_id) {
+            await cloudinary.uploader.destroy(user.image.public_id);
+        }
+        user.image = { url: image.url, public_id: image.public_id };
+    }
+
+    await user.save();
+    user.password = undefined;
+    user.refreshTokens = undefined;
+    return user;
 }
 

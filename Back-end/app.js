@@ -20,7 +20,7 @@ import adminRouter from "./modules/admin/admin.routes.js";
 import productRouter from "./modules/products/products.routes.js";
 import swaggerUi from "swagger-ui-express"
 import { swaggerDocument } from "./swagger.js";
-import gerror from "./utils/gerror.js";
+import gerror from "./middlewares/gerror.js";
 
 const app = express();
 

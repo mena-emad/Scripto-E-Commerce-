@@ -11,7 +11,7 @@ const cardStyle = {
 };
 
 export default function HomePage({ products, categories, currentUser, onAddToCart }) {
-  const approvedProducts = products.filter((product) => product.isApproved);
+  const approvedProducts = products.filter((product) => product.status === 'approved' && product.isActive === true);
   const featured = approvedProducts.slice(0, 4);
 
   return (
@@ -51,15 +51,19 @@ export default function HomePage({ products, categories, currentUser, onAddToCar
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))', gap: '1rem' }}>
           {featured.map((product) => (
             <div key={product.id} style={{ ...cardStyle, overflow: 'hidden' }}>
-              <img src={product.images[0]} alt={product.name} style={{ width: '100%', height: '200px', objectFit: 'cover', borderRadius: '12px', marginBottom: '0.9rem' }} />
+              <img src={product.images[0]?.url} alt={product.name} style={{ width: '100%', height: '200px', objectFit: 'cover', borderRadius: '12px', marginBottom: '0.9rem' }} />
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
                 <strong>{product.name}</strong>
-                <Badge tone={product.discount?.isActive ? 'success' : 'neutral'}>{product.discount?.isActive ? `${product.discount.percentage}% off` : 'New'}</Badge>
+                <Badge tone={product.status === 'approved' ? 'success' : 'warning'}>{product.status || 'pending'}</Badge>
               </div>
               <p style={{ color: '#64748b', minHeight: '60px', marginBottom: '0.8rem' }}>{product.description}</p>
+              <div style={{ color: '#475569', fontSize: '0.85rem', marginBottom: '0.8rem' }}><strong>Vendor:</strong> {product.vendor?.storeName || product.vendor?.name || product.vendor || 'Unknown vendor'}</div>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <strong style={{ fontSize: '1.2rem' }}>${product.price}</strong>
-                <Button onClick={() => onAddToCart(product, 1)}>Add to cart</Button>
+                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                  <Link to={`/products/${product.id}`}><Button variant="secondary">Details</Button></Link>
+                  <Button onClick={() => onAddToCart(product, 1)}>Add to cart</Button>
+                </div>
               </div>
             </div>
           ))}

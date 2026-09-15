@@ -22,6 +22,9 @@ const userJoi = joi.object({
     role:joi.string().valid("user","vendor").default("user").messages({
         "any.only":"Role is invalid cannot signup as admin",
     }),
+    acceptTerms:joi.boolean().required().messages({
+        "any.required":"Accept terms is required",
+    }),
     storeAdress:joi.when('role', { is: 'vendor', then: joi.string().required().messages({
         "string.empty":"Store address is required",
         "any.required":"Store address is required",
@@ -98,6 +101,12 @@ export const updatePassowrdJoi = joi.object({
         "any.only":"Passwords do not match",
         "any.required":"Confirm password is required",
     })
+})
+
+export const updateProfileJoi = joi.object({
+    name: joi.string().trim().min(2).optional().messages({
+        "string.min": "Name must be at least 2 characters long",
+    }),
 })
 
 export const resetPasswordJoi = joi.object({

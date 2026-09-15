@@ -1,4 +1,4 @@
-import { createProductService, getProductsService, updateProductService, deleteProductService } from "./products.service.js";
+import { createProductService, getProductsService, updateProductService, deleteProductService, toggleProductActiveService } from "./products.service.js";
 import catchAsync from "../../utils/catchAsync.js";
 import AppError from "../../utils/appError.js";
 import {uploadToCloudinary} from "../../utils/cloudinary.js";
@@ -15,7 +15,7 @@ export const createProduct = catchAsync(async(req,res,next)=>{
 })
 //======== get products controller ========
 export const getProducts = catchAsync(async(req,res,next)=>{
-    const products = await getProductsService({isApproved:true},req.query);
+    const products = await getProductsService({status:"approved", isActive:true},req.query);
     const isBuyer = !!req.user;
     const isAdmin = !!req.user && req.user.role === "admin";
     const isVendor = !!req.user && req.user.role === "vendor";
@@ -33,5 +33,10 @@ export const updateProduct = catchAsync(async(req,res,next)=>{
 export const deleteProduct = catchAsync(async(req,res,next)=>{
     await deleteProductService(req)
     res.status(200).json({message:"Product deleted successfully"});
+})
+
+export const toggleProductActive = catchAsync(async(req,res,next)=>{
+    const product = await toggleProductActiveService(req.params.id, req.body.isActive);
+    res.status(200).json({product,message:"Product availability updated successfully"});
 })
 

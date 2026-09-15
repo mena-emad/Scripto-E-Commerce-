@@ -24,8 +24,8 @@ export const staticsService = async (query)=>{
     const totalProductsPromise =  productModel.countDocuments({});
     const totalVendorsPromise =  userModel.countDocuments({role:"vendor"});
     const totalUsersPromise =  userModel.countDocuments({role:"user"});
-    const totalPendingProductsPromise =  productModel.countDocuments({isApproved:false});
-    const pendingProductsPromise =  productModel.find({isApproved:false}).limit(limit).skip(offset).lean();
+    const totalPendingProductsPromise =  productModel.countDocuments({status:"pending"});
+    const pendingProductsPromise =  productModel.find({status:"pending"}).limit(limit).skip(offset).lean();
     const totalPendingVendorsPromise =  vendorModel.countDocuments({isApproved:false});
     const pendingVendorsPromise =  vendorModel.find({isApproved:false}).select("storeName storeLogo _id").limit(limit).skip(offset).lean();
     const [totalOrders , totalProducts , totalVendors , totalUsers,totalPendingProducts,pendingProducts,totalPendingVendors,pendingVendors,totalSales] = await Promise.all([totalOrdersPromise,totalProductsPromise,totalVendorsPromise,totalUsersPromise,totalPendingProductsPromise,pendingProductsPromise,totalPendingVendorsPromise,pendingVendorsPromise,totalSalesPromise]);
@@ -36,7 +36,7 @@ export const staticsService = async (query)=>{
 }
 
 export const viewVendorDetailsService = async (id)=>{
-    const vendorDetails = await vendorModel.findById(id).populate("owner","name email image").lean();
+    const vendorDetails = await vendorModel.findById(id).populate("owner","name email image isBlocked").lean();
     if(!vendorDetails)
         throw new AppError("Vendor does not exist",400);
     return vendorDetails;
@@ -75,7 +75,7 @@ export const userService  = async(query)=>{
         const escaped = keyword.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
         filter.$or = [{name:{$regex:`^${escaped}`,$options:"i"}},{email:{$regex:escaped,$options:"i"}}]
     }
-    const usersPromise = userModel.find(filter).select("name email _id image").limit(limit).skip(offset).lean();
+    const usersPromise = userModel.find(filter).select("name email _id image isBlocked").limit(limit).skip(offset).lean();
     const totalUsersPromise = userModel.countDocuments(filter);
     const [users , totalUsers] = await Promise.all([usersPromise,totalUsersPromise]);
     const totalPages = calcualteTotalPages(totalUsers,limit);
@@ -90,7 +90,7 @@ export const vendorService = async(query)=>{
         const escaped = keyword.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
         filter.$or = [{storeName:{$regex:`^${escaped}`,$options:"i"}}]
     }
-    const vendorsPromise =  vendorModel.find(filter).select("storeName storeLogo _id").limit(limit).skip(offset).lean();
+    const vendorsPromise =  vendorModel.find(filter).select("storeName storeAdress storeLogo isApproved owner _id").populate("owner", "name email isBlocked").limit(limit).skip(offset).lean();
     const totalVendorsPromise = vendorModel.countDocuments(filter);
     const [vendors , totalVendors] = await Promise.all([vendorsPromise,totalVendorsPromise]);
     const totalPages = calcualteTotalPages(totalVendors,limit);
@@ -105,7 +105,7 @@ export const productService = async(query)=>{
         const escaped = keyword.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
         filter.$or = [{name:{$regex:`${escaped}`,$options:"i"}}]
     }
-    const productsPromise =  productModel.find(filter).select("name price images _id").limit(limit).skip(offset).lean();
+    const productsPromise =  productModel.find(filter).select("name price images _id category vendor status quantity description isActive discount").populate("vendor", "storeName").limit(limit).skip(offset).lean();
     const totalProductsPromise =  productModel.countDocuments(filter);
     const [products , totalProducts] = await Promise.all([productsPromise,totalProductsPromise]);
     const totalPages = calcualteTotalPages(totalProducts,limit);
@@ -115,8 +115,10 @@ export const productService = async(query)=>{
 export const approveproductService = async (id)=>{
     const product = await productModel.findById(id);
     if(!product) throw new AppError("Product does not exist",400);
-    if(product.isApproved) throw new AppError("Product is already approved",400);
-    product.isApproved = true;
+    if(product.status === "approved") throw new AppError("Product is already approved",400);
+    if(product.status === "out of stock") throw new AppError("Out-of-stock product cannot be approved",400);
+    product.status = "approved";
+    product.isActive = true;
     await product.save({validateBeforeSave:false});
     return product;
 }

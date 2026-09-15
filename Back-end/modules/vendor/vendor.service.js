@@ -2,18 +2,53 @@ import AppError from "../../utils/AppError.js";
 import productModel from "../../data/models/Product.js";
 import { subOrderModel , parentOrderModel } from "../../data/models/Orders.js";
 import vendorModel from "../../data/models/Vendor.js";
-import uploadToCloudinary from "../../utils/cloudinary.js";
+import {uploadToCloudinary} from "../../utils/cloudinary.js";
 import {pagination,calcualteTotalPages} from "../../utils/pagination.js";
 
 class VenodrProductService {
 
     async getMyProduct(vendorId){
-        return  await productModel.find({vendor:vendorId}).lean();
+        return  await productModel.find({vendor:vendorId}).populate("vendor", "storeName").lean();
     }
 
 }
 
 class VendorOrderService {
+    async repairOrderTotals(vendorId, orderId = null) {
+        const filter = { vendor: vendorId };
+        if (orderId) filter._id = orderId;
+        const orders = await subOrderModel.find(filter).populate("products.product");
+
+        for (const order of orders) {
+            let totalPrice = 0;
+            let totalAmount = 0;
+            let changed = false;
+
+            for (const line of order.products || []) {
+                const product = line.product;
+                if (!product) continue;
+                const basePrice = Number(product.price);
+                const price = product.discount?.isActive
+                    ? basePrice * (1 - Number(product.discount.percentage || 0) / 100)
+                    : basePrice;
+                const quantity = Number(line.quantity) || 0;
+                totalPrice += price * quantity;
+                totalAmount += quantity;
+                if (line.price !== price) {
+                    line.price = price;
+                    changed = true;
+                }
+            }
+
+            if (order.totalPrice !== totalPrice || order.totalAmount !== totalAmount) {
+                order.totalPrice = totalPrice;
+                order.totalAmount = totalAmount;
+                changed = true;
+            }
+            if (changed) await order.save({ validateBeforeSave: false });
+        }
+    }
+
     async updateParentOrderStatus(parentOrderId){
         const orders = await subOrderModel.find({parentOrder:parentOrderId}).select("status").lean();
         if(orders.length === 0) return;
@@ -30,10 +65,12 @@ class VendorOrderService {
         await parentOrderModel.findOneAndUpdate({_id:parentOrderId},{$set:{globalStatus}});
     }
     async getMyOrders(vendorId){
-        return  await subOrderModel.find({vendor:vendorId}).populate("product").lean();
+        await this.repairOrderTotals(vendorId);
+        return await subOrderModel.find({vendor:vendorId}).populate("products.product").lean();
     }
     async getOrderDetails(orderId,vendorId){
-        return  await subOrderModel.findOne({vendor:vendorId,_id:orderId}).populate("product").lean();
+        await this.repairOrderTotals(vendorId, orderId);
+        return await subOrderModel.findOne({vendor:vendorId,_id:orderId}).populate("products.product").lean();
     }
 
     async updateOrdersStatus(orderId,vendorId,status){
@@ -58,7 +95,6 @@ class VendorProfileService{
         if(data.storeAdress?.trim()) updatedData.storeAdress = data.storeAdress.trim();
         if(data.storePhone?.trim()) updatedData.storePhone = data.storePhone.trim();
         if(data.storeDescription?.trim()) updatedData.storeDescription = data.storeDescription.trim();
-        if(data.storeEmail?.trim()) updatedData.storeEmail = data.storeEmail.trim();
         if(file){
             const image = await uploadToCloudinary(file.buffer);
             if(image) {
@@ -72,12 +108,14 @@ class VendorProfileService{
         const vendor = await vendorModel.findByIdAndUpdate({_id:vendorId},{$set:updatedData},{new:true , runValidators:true});
 
         if(!vendor) throw new AppError("Vendor does not exist",400);
+        return vendor;
 
     }
 }
 
 class VendorDashboardService {
     async getDashboardStats(vendorId){
+        await vendorOrderService.repairOrderTotals(vendorId);
         const totalOrdersPromise = subOrderModel.countDocuments({vendor:vendorId});
         const totalDeliveredPromise = subOrderModel.countDocuments({vendor:vendorId, status:"Delivered"});
         const totalShippedPromise = subOrderModel.countDocuments({vendor:vendorId, status:"Shipped"});
@@ -109,8 +147,8 @@ class VendorDashboardService {
 
     async getProductsSatas(vendorId){
         const totalProductsPromise = productModel.countDocuments({vendor:vendorId});
-        const totalApprovedProductsPromise = productModel.countDocuments({vendor:vendorId,isApproved:true});
-        const totalPendingProductsPromise = productModel.countDocuments({vendor:vendorId,isApproved:false});
+        const totalApprovedProductsPromise = productModel.countDocuments({vendor:vendorId,status:"approved"});
+        const totalPendingProductsPromise = productModel.countDocuments({vendor:vendorId,status:"pending"});
         const [totalProducts,totalApprovedProducts , totalPendingProducts] = await Promise.all([totalProductsPromise,totalApprovedProductsPromise,totalPendingProductsPromise]);
         return {
             totalProducts,
@@ -120,8 +158,9 @@ class VendorDashboardService {
     }
 
     async getRecentOrders(vendorId,query){
+        await vendorOrderService.repairOrderTotals(vendorId);
         const {offset , limit } = pagination(query?.pages || 1,query?.limit || 15);
-        const ordersPromise =  subOrderModel.find({vendor:vendorId}).populate("product").skip(offset).limit(limit).sort({createdAt:-1}).lean();
+        const ordersPromise = subOrderModel.find({vendor:vendorId}).populate("products.product").skip(offset).limit(limit).sort({createdAt:-1}).lean();
         const totalOrdersPromise =  subOrderModel.countDocuments({vendor:vendorId});
         const [orders , totalOrders] = await Promise.all([ordersPromise,totalOrdersPromise]);
         const orderPages = calcualteTotalPages(totalOrders,limit);

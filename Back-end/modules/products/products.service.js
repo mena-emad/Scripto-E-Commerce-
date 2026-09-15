@@ -35,8 +35,11 @@ export const createProductService = async(productData,files)=>{
     })
     const data = {
         ...productData,
+        status: "pending",
+        isActive: true,
         images
     }
+
     const product = await productModel.create(data);
     return product;
 }
@@ -80,12 +83,37 @@ export const updateProductService = async(id,vendorId,productData,files)=>{
         price:productData.price??product.price,
         category:productData.category??product.category,
         quantity:productData.quantity??product.quantity,
+        isActive: productData.quantity !== undefined
+            ? Number(productData.quantity) > 0
+            : product.isActive,
+        status: productData.quantity !== undefined && Number(productData.quantity) === 0
+            ? "out of stock"
+            : productData.quantity !== undefined && Number(productData.quantity) > 0 && product.status === "out of stock"
+                ? "approved"
+                : product.status,
         images:images
     }
     Object.assign(product,updatedProduct);
     await product.save();
     return product;
 }
+
+export const toggleProductActiveService = async (id, isActive) => {
+    if (typeof isActive !== "boolean") {
+        throw new AppError("isActive must be a boolean", 400);
+    }
+
+    const product = await productModel.findById(id);
+    if (!product) throw new AppError("Product does not exist", 400);
+
+    if (isActive && (product.quantity <= 0 || product.status === "out of stock")) {
+        throw new AppError("A product with no stock cannot be activated", 400);
+    }
+
+    product.isActive = isActive;
+    await product.save();
+    return product;
+};
 
 //======== delete Product ========
 export const deleteProductService = async(req)=>{

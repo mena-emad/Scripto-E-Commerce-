@@ -1,8 +1,7 @@
 import { Link } from 'react-router-dom';
 import Button from '../../../components/ui/Button';
 
-export default function CartPage({ items, onRemove, onQuantityChange }) {
-  const total = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+export default function CartPage({ items, total = 0, onRemove, onQuantityChange }) {
 
   if (!items.length) {
     return (
@@ -15,7 +14,7 @@ export default function CartPage({ items, onRemove, onQuantityChange }) {
   }
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: '1.4fr 0.6fr', gap: '1.2rem' }}>
+    <div style={{ display: 'grid', gridTemplateColumns: '1.4fr 0.6fr', gap: '1.2rem' }} className="responsive-two-column">
       <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: '18px', padding: '1.25rem' }}>
         {items.map((item) => (
           <div key={item.productId} style={{ display: 'grid', gridTemplateColumns: '1fr auto auto', gap: '1rem', alignItems: 'center', borderBottom: '1px solid #e2e8f0', padding: '1rem 0' }}>

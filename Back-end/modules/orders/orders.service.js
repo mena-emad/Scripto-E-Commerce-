@@ -18,24 +18,38 @@ export const makeOrderService = async (orderData, userId) => {
         }
 
         const itemsByVendor = {};
-        const parentTotalPrice = cart.totalPrice; 
+        const pricedItems = [];
+        let parentTotalPrice = 0;
 
         for (const item of cart.products) {
             const product = item.product;
             if (!product) throw new AppError("Product does not exist", 400);
-            if (!product.isApproved) throw new AppError("Product is not approved", 400);
+            if (product.status !== "approved" || !product.isActive) throw new AppError("Product is not available", 400);
             
             const vendorId = (product.vendor._id || product.vendor).toString();
             if (vendorId === userId.toString()) 
                 throw new AppError("You cannot order your own product", 400);
             
-            if (product.quantity === 0 || product.isActive !== "active") {
+            if (product.quantity === 0 || !product.isActive || product.status === "out of stock") {
                 throw new AppError(`Product "${product.name}" is out of stock`, 400);
             }
             
             if (item.quantity > product.quantity) {
                 throw new AppError(`Only ${product.quantity} left in stock for ${product.name}`, 400);
             }
+
+            const storedPrice = Number(item.price);
+            const basePrice = Number(product.price);
+            const discountPrice = product.discount?.isActive
+                ? basePrice * (1 - Number(product.discount.percentage || 0) / 100)
+                : basePrice;
+            const productPrice = Number.isFinite(discountPrice) ? discountPrice : basePrice;
+            const itemPrice = storedPrice > 0 ? storedPrice : productPrice;
+            if (!Number.isFinite(itemPrice) || itemPrice < 0) {
+                throw new AppError(`Price is unavailable for product "${product.name}"`, 400);
+            }
+            parentTotalPrice += itemPrice * item.quantity;
+            pricedItems.push({ item, product, itemPrice });
 
             if (!itemsByVendor[vendorId]) {
                 itemsByVendor[vendorId] = [];
@@ -44,16 +58,16 @@ export const makeOrderService = async (orderData, userId) => {
             itemsByVendor[vendorId].push({
                 product: product._id,
                 quantity: item.quantity,
-                price: item.price,
+                price: itemPrice,
                 vendor: product.vendor
             });
         }
 
-        const parentProducts = cart.products.map(item => ({
-            product: item.product._id,
+        const parentProducts = pricedItems.map(({ item, product, itemPrice }) => ({
+            product: product._id,
             quantity: item.quantity,
-            price: item.price,
-            vendor: item.product.vendor._id || item.product.vendor
+            price: itemPrice,
+            vendor: product.vendor._id || product.vendor
         }));
         
         const totalAmount = parentProducts.reduce((acc, curr) => acc + curr.quantity, 0);
@@ -88,6 +102,8 @@ export const makeOrderService = async (orderData, userId) => {
                 const updatedProduct = await productModel.findOneAndUpdate(
                     {
                         _id: item.product,
+                        status: "approved",
+                        isActive: true,
                         quantity: { $gte: item.quantity }
                     },
                     [
@@ -98,17 +114,24 @@ export const makeOrderService = async (orderData, userId) => {
                         },
                         { 
                             $set: { 
-                                isActive: { 
+                                isActive: {
                                     $cond: { 
                                         if: { $eq: ["$quantity", 0] }, 
-                                        then: "out of stock", 
+                                        then: false,
                                         else: "$isActive" 
                                     } 
-                                } 
+                                },
+                                status: {
+                                    $cond: {
+                                        if: { $eq: ["$quantity", 0] },
+                                        then: "out of stock",
+                                        else: "$status"
+                                    }
+                                }
                             } 
                         }
                     ],
-                    { session, new: true }
+                    { session, new: true, updatePipeline: true }
                 );
                 
                 if (!updatedProduct) {
@@ -133,4 +156,12 @@ export const makeOrderService = async (orderData, userId) => {
         session.endSession();
     }
 
+};
+
+export const getMyOrdersService = async (userId) => {
+    return parentOrderModel
+        .find({ user: userId })
+        .populate('products.product')
+        .sort({ createdAt: -1 })
+        .lean();
 };
