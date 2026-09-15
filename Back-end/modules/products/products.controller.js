@@ -1,6 +1,6 @@
 import { createProductService, getProductsService, updateProductService, deleteProductService, toggleProductActiveService } from "./products.service.js";
 import catchAsync from "../../utils/catchAsync.js";
-import AppError from "../../utils/appError.js";
+import AppError from "../../utils/AppError.js";
 import {uploadToCloudinary} from "../../utils/cloudinary.js";
 //======== create product controller ========
 export const createProduct = catchAsync(async(req,res,next)=>{
