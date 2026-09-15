@@ -39,9 +39,12 @@ app.use(helmet());
 const allowedOrigin = [process.env.FRONTEND_URL , "http://localhost:5173"]
 app.use(cors({
     origin:(origin, callback)=>{
-        if(allowedOrigin.includes(origin)){
+        if(!origin  ||allowedOrigin.includes(origin)){
             callback(null,true)
         }else{
+            console.log("Blocked Origin:", origin);
+            console.log("Allowed Origins:", allowedOrigin);
+
             callback(new Error("Not allowed by CORS"))
         }
     } ,
