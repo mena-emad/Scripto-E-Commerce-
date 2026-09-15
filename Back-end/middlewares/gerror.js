@@ -18,7 +18,7 @@ const gerror = (err,req,res,next)=>{
             statuCode:err.statusCode
         })
     
-    return res.status(err.statuCode).json({
+    return res.status(err.statusCode).json({
         success:false,
         message:"Something went wrong",
         status:err.status,
