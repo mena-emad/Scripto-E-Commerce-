@@ -59,7 +59,6 @@ export const verifyEmailService = async(email,plainOtp)=>{
 }
 //======== user registeration service ========
 export const registerService = async (user,fileData)=>{
-    await connectDB();
     const session = await mongoose.startSession();
     let userSafe;
     let message;
