@@ -1,9 +1,24 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import useAuth from "../../../hooks/auth/useAuth";
 import Button from '../../../components/ui/Button';
 import Input from '../../../components/ui/Input';
 
 const styles = {
+  imageUpload: {
+    border: '1px dashed #cbd5e1',
+    borderRadius: '12px',
+    padding: '1rem',
+    background: '#f8fafc',
+  },
+
+  imagePreview: {
+    width: '90px',
+    height: '90px',
+    objectFit: 'cover',
+    borderRadius: '12px',
+    border: '1px solid #e2e8f0',
+  },
   wrapper: {
     minHeight: '78vh',
     display: 'grid',
@@ -34,22 +49,22 @@ function passwordStrength(password) {
   return 'Weak';
 }
 
-export default function RegisterPage({ users, onRegister }) {
+export default function RegisterPage({ onRegister }) {
   const navigate = useNavigate();
   const [form, setForm] = useState({
-    name: 'Sara Ahmed',
-    email: 'sara@example.com',
-    password: 'Pass123!',
-    confirmPassword: 'Pass123!',
+    name: '',
+    email: '',
+    password: '',
+    confirmPassword: '',
     role: 'user',
-    storeAdress: '',
-    storePhone: '',
-    storeDescription: '',
-    acceptTerms: false
+    profileImage:null
+
   });
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const {signup} = useAuth();
+  const [imagePreview,setImagePreview] = useState(null);
 
   const validate = () => {
     const nextErrors = {};
@@ -69,37 +84,61 @@ export default function RegisterPage({ users, onRegister }) {
     return nextErrors;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const nextErrors = validate();
     setErrors(nextErrors);
     if (Object.keys(nextErrors).length > 0) return;
 
     setLoading(true);
-    setTimeout(() => {
-      const existingUser = users.find((user) => user.email.toLowerCase() === form.email.toLowerCase());
-      if (existingUser) {
-        setErrors({ email: 'This email is already registered.' });
-        setLoading(false);
-        return;
-      }
-
-      const newUser = {
-        id: `u${Date.now()}`,
-        name: form.name,
-        email: form.email,
-        password: form.password,
-        role: form.role,
-        isBlocked: false,
-        isVerified: false,
-        image: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=600&q=80'
-      };
-      users.push(newUser);
+    try{
+      const formData = new FormData();
+      Object.entries(form).forEach(([key,value])=>{
+        if(value !== null && value !== '') formData.append(key,value);
+      });
+      const newUser = await signup(formData);
       onRegister(newUser);
-      navigate(form.role === 'vendor' ? '/vendor/dashboard' : '/');
+      navigate('/verify',{state:{email:form.email}});
+    }catch(error){
+      setErrors({ form: error?.response?.data?.message || 'Unable to create your account.' });
+    } finally {
       setLoading(false);
-    }, 800);
+    }
   };
+
+  const handleImageChange = (e)=>{
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if(!file.type.startsWith("image/")) {
+      setErrors((prev) => ({
+        ...prev,
+        profileImage: 'Please select a valid image.',
+      }));
+      return;
+    }
+
+  if (file.size > 5 * 1024 * 1024) {
+    setErrors((prev) => ({
+      ...prev,
+      profileImage: 'Image size must not exceed 5MB.',
+    }));
+    return;
+  }
+
+  setForm((prev) => ({
+    ...prev,
+    profileImage: file,
+  }));
+
+  setImagePreview(URL.createObjectURL(file));
+  setErrors((prev) => ({
+    ...prev,
+    profileImage: '',
+  }))
+
+
+
+  }
 
   return (
     <div style={styles.wrapper}>
@@ -112,6 +151,82 @@ export default function RegisterPage({ users, onRegister }) {
             <div style={styles.full}>
               <Input label="Full name" name="name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} error={errors.name} required />
             </div>
+
+              <div style={styles.full}>
+    <label
+      htmlFor="profileImage"
+      style={{
+        display: 'block',
+        fontWeight: 600,
+        marginBottom: '0.5rem',
+      }}
+    >
+      Profile picture
+    </label>
+
+    <div style={styles.imageUpload}>
+      <input
+        id="profileImage"
+        name="profileImage"
+        type="file"
+        accept="image/*"
+        onChange={handleImageChange}
+        style={{
+          width: '100%',
+          fontSize: '0.9rem',
+        }}
+      />
+
+      {imagePreview && (
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '1rem',
+            marginTop: '1rem',
+          }}
+        >
+          <img
+            src={imagePreview}
+            alt="Selected profile"
+            style={styles.imagePreview}
+          />
+
+          <span
+            style={{
+              fontSize: '0.85rem',
+              color: '#64748b',
+              overflowWrap: 'anywhere',
+            }}
+          >
+            {form.image?.name}
+          </span>
+        </div>
+      )}
+
+      <p
+        style={{
+          fontSize: '0.8rem',
+          color: '#64748b',
+          margin: '0.5rem 0 0',
+        }}
+      >
+        JPG, PNG or other image formats. Maximum size: 5MB.
+      </p>
+    </div>
+
+    {errors.image && (
+      <div
+        style={{
+          color: '#dc2626',
+          marginTop: '0.35rem',
+          fontWeight: 600,
+        }}
+      >
+        {errors.image}
+      </div>
+    )}
+  </div>
 
             <div style={styles.full}>
               <Input label="Email" name="email" type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} error={errors.email} required />

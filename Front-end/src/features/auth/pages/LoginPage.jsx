@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Button from '../../../components/ui/Button';
 import Input from '../../../components/ui/Input';
+import useAuth from '../../../hooks/auth/useAuth';
 
 const styles = {
   wrapper: {
@@ -26,8 +27,9 @@ const styles = {
   smallLink: { color: '#1d4ed8', fontWeight: 700 }
 };
 
-export default function LoginPage({ onLogin, users }) {
+export default function LoginPage({ onLogin }) {
   const navigate = useNavigate();
+  const {login,user} = useAuth()
   const [form, setForm] = useState({ email: 'customer@example.com', password: 'Pass123!' });
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
@@ -48,25 +50,37 @@ export default function LoginPage({ onLogin, users }) {
     if (Object.keys(nextErrors).length > 0) return;
 
     setLoading(true);
-    setTimeout(() => {
-      const matched = users.find((user) => user.email.toLowerCase() === form.email.toLowerCase() && user.password === form.password);
-      if (!matched) {
-        setErrors({ form: 'Invalid email or password.' });
-        setLoading(false);
-        return;
-      }
+    setErrors({});
 
-      if (matched.isBlocked) {
-        setErrors({ form: 'This account is blocked.' });
-        setLoading(false);
-        return;
-      }
+    setTimeout(async() => {
+      try {
+        const matched = await login(form.email, form.password);
 
-      onLogin(matched);
-      if (matched.role === 'admin') navigate('/admin/dashboard');
-      else if (matched.role === 'vendor') navigate('/vendor/dashboard');
-      else navigate('/');
-      setLoading(false);
+        if (!matched) {
+          setErrors({ form: 'Invalid email or password.' });
+          return;
+        }
+
+        if (matched.isBlocked) {
+          setErrors({ form: 'This account is blocked.' });
+          return;
+        }
+
+        onLogin(matched);
+        if (matched.role === 'admin') navigate('/admin/dashboard');
+        else if (matched.role === 'vendor') navigate('/vendor/dashboard');
+        else navigate('/');
+      } catch (error) {
+        const message = error?.response?.data?.message || '';
+        if (message.toLowerCase().includes('verify your email')) {
+          navigate('/verify', { state: { email: form.email } });
+          return;
+        }
+
+        setErrors({ form: message || 'Invalid email or password.' });
+      } finally {
+        setLoading(false);
+      }
     }, 700);
   };
 
@@ -92,6 +106,7 @@ export default function LoginPage({ onLogin, users }) {
             label="Password"
             name="password"
             type={showPassword ? 'text' : 'password'}
+            autoComplete="current-password"
             value={form.password}
             placeholder="Enter your password"
             error={errors.password}
@@ -104,7 +119,7 @@ export default function LoginPage({ onLogin, users }) {
               <input type="checkbox" checked={showPassword} onChange={() => setShowPassword((prev) => !prev)} />
               Show password
             </label>
-            <Link to="/register" style={styles.smallLink}>Forgot password?</Link>
+            <Link to="/forgot-password" style={styles.smallLink}>Forgot password?</Link>
           </div>
 
           {errors.form && <div style={{ color: '#dc2626', fontWeight: 700 }}>{errors.form}</div>}

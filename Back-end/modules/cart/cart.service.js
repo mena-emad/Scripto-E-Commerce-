@@ -24,7 +24,7 @@ const calculatePrice = async (cart)=>{
 export const addToCartService = async (req)=>{
     const product = await productModel.findById(req.body.productId);
     if(!product) throw new AppError("Product does not exist",400);
-    if(!product.isApproved) throw new AppError("Product is not approved",400);
+    if(product.status !== "approved" || !product.isActive) throw new AppError("Product is not available",400);
     if(req.body.quantity > product.quantity) throw new AppError(`Only ${product.quantity} left in stock`,400);
     if(req.user.role === "vendor" && String(req.vendor._id) === product.vendor.toString()) throw new AppError("You cannot add your own product to cart",400);
     let cart = await cartModel.findOne({user:req.user._id});

@@ -1,8 +1,8 @@
 import express from "express"
-import { createProduct, getProducts , updateProduct, deleteProduct} from "./products.controller.js"
+import { createProduct, getProducts , updateProduct, deleteProduct, toggleProductActive} from "./products.controller.js"
 import { productsJoi, updatedProductJoi } from "./products.validations.js"
 import validation from "../../middlewares/validation.js"
-import { allowGuest , protect, restrictTo, restrictToVendorApproved } from "../../middlewares/auth.js"
+import { allowGuest , protect, restrictTo, restrictToVendorApproved, restrictToVendorApprovedOrAdmin } from "../../middlewares/auth.js"
 const productRouter = express.Router();
 import upload from "../../utils/cloudinary.js"
 // ========= get product routes =========
@@ -14,6 +14,7 @@ productRouter.post("/add-product",protect,restrictTo("vendor"),restrictToVendorA
 productRouter.put("/update-product/:id",protect,restrictTo("vendor"),restrictToVendorApproved,upload.array("productImage"),validation(updatedProductJoi),updateProduct)
 
 //======== delete product routes =========
-productRouter.delete("/delete-product/:id",protect,restrictTo("vendor","admin"),restrictToVendorApproved,deleteProduct)
+productRouter.delete("/delete-product/:id",protect,restrictTo("vendor","admin"),restrictToVendorApprovedOrAdmin,deleteProduct)
+productRouter.patch("/toggle-active/:id",protect,restrictTo("admin"),toggleProductActive)
 
 export default productRouter

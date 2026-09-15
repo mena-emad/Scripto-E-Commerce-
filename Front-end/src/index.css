@@ -79,6 +79,61 @@ a {
 
 button {
   font: inherit;
+  max-width: 100%;
+}
+
+.app-topbar {
+  gap: 1rem;
+}
+
+@media (max-width: 760px) {
+  .app-topbar {
+    position: static !important;
+    flex-wrap: wrap;
+    padding: 0.85rem 1rem !important;
+  }
+
+  .app-topbar nav {
+    order: 3;
+    width: 100%;
+    overflow-x: auto;
+    padding-bottom: 0.25rem;
+  }
+
+  .app-topbar > div:last-child {
+    margin-left: auto;
+  }
+
+  .responsive-two-column,
+  .responsive-form-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .responsive-sidebar-layout {
+    grid-template-columns: 1fr !important;
+  }
+
+  .responsive-sidebar-layout aside {
+    position: static !important;
+  }
+}
+
+@media (max-width: 520px) {
+  .app-topbar > div:last-child {
+    width: 100%;
+    justify-content: space-between;
+    margin-left: 0;
+  }
+
+  .app-topbar nav {
+    gap: 0.75rem !important;
+  }
+
+  input,
+  select,
+  textarea {
+    max-width: 100%;
+  }
 }
 
 img {

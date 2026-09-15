@@ -62,6 +62,10 @@ const UserSchema = new mongoose.Schema({
         url:String,
         public_id:String
     },
+    acceptTerms:{
+        type:Boolean,
+        default:false
+    }
 },{
     timestamps:true,
     versionKey:false,

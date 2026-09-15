@@ -53,6 +53,14 @@ export const restrictToVendorApproved = catchAsync(async(req,res,next)=>{
     next();
 })
 
+export const restrictToVendorApprovedOrAdmin = catchAsync(async(req,res,next)=>{
+    if(req.user.role === "admin") return next();
+    if(req.user.role !== "vendor") return next(new AppError("You do not have permission to perform this action",403));
+    if(!req.vendor) return next(new AppError("Vendor does not exist please signup",401));
+    if(!req.vendor.isApproved) return next(new AppError("Vendor is not approved please wait for approval",403));
+    next();
+})
+
 export const allowGuest = catchAsync(async(req,res,next)=>{
     let token;
     if(req.headers.authorization && req.headers.authorization.startsWith("Bearer")){

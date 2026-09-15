@@ -1,5 +1,5 @@
-import { register,verifyEmail,updatePassword,generateOTP,generateNewAccessToken,login,logout,generateOTPreset,forgotPassword,resetPassword,deleteMyAccount ,deleteAccount,toggleblockAccount,getMe} from "./auth.controller.js";
-import  {generateOTPJoi,updatePassowrdJoi, userJoi,verifyEmailJoi,loginJoi,forgotPasswordJoi,resetPasswordJoi}  from "./auth.validation.js"
+import { register,verifyEmail,updatePassword,updateProfile,generateOTP,generateNewAccessToken,login,logout,generateOTPreset,forgotPassword,resetPassword,deleteMyAccount ,deleteAccount,toggleblockAccount,getMe} from "./auth.controller.js";
+import  {generateOTPJoi,updatePassowrdJoi,updateProfileJoi, userJoi,verifyEmailJoi,loginJoi,forgotPasswordJoi,resetPasswordJoi}  from "./auth.validation.js"
 import { restrictTo, restrictToVendorApproved } from "../../middlewares/auth.js";
 import validation from "../../middlewares/validation.js";
 import express from "express";
@@ -45,6 +45,7 @@ authRouter.post("/reset-password",validation(resetPasswordJoi),resetPassword);
 
 authRouter.post("/logout" , protect,logout);
 authRouter.patch('/update-password',protect,validation(updatePassowrdJoi),updatePassword);
+authRouter.patch('/profile',protect,uplaod.single("profileImage"),validation(updateProfileJoi),updateProfile);
 authRouter.delete("/delete-my-account",protect,deleteMyAccount)
 authRouter.get("/me",protect,getMe)
 
