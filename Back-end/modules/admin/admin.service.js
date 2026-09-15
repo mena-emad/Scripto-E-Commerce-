@@ -36,7 +36,7 @@ export const staticsService = async (query)=>{
 }
 
 export const viewVendorDetailsService = async (id)=>{
-    const vendorDetails = await vendorModel.findById(id).populate("owner","name email image isBlocked").lean();
+    const vendorDetails = await vendorModel.findById(id).populate("owner","name email isBlocked image").lean();
     if(!vendorDetails)
         throw new AppError("Vendor does not exist",400);
     return vendorDetails;
@@ -50,7 +50,7 @@ export const viewUserDetailsService = async (id)=>{
 }
 
 export const viewProductDetailsService = async (id)=>{
-    const productDetails = await productModel.findById(id).lean();
+    const productDetails = await productModel.findById(id).populate({path:"vendor",populate:{path:"owner"}}).lean();
     if(!productDetails)
         throw new AppError("Product does not exist",400);
     return productDetails;
@@ -105,7 +105,7 @@ export const productService = async(query)=>{
         const escaped = keyword.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
         filter.$or = [{name:{$regex:`${escaped}`,$options:"i"}}]
     }
-    const productsPromise =  productModel.find(filter).select("name price images _id category vendor status quantity description isActive discount").populate("vendor", "storeName").limit(limit).skip(offset).lean();
+    const productsPromise =  productModel.find(filter).select("name price images _id category vendor status quantity description isActive discount").populate("vendor", "storeName storeLogo").limit(limit).skip(offset).lean();
     const totalProductsPromise =  productModel.countDocuments(filter);
     const [products , totalProducts] = await Promise.all([productsPromise,totalProductsPromise]);
     const totalPages = calcualteTotalPages(totalProducts,limit);
@@ -113,7 +113,7 @@ export const productService = async(query)=>{
 }
 
 export const approveproductService = async (id)=>{
-    const product = await productModel.findById(id);
+    const product = await productModel.findById(id).populate("vendor");
     if(!product) throw new AppError("Product does not exist",400);
     if(product.status === "approved") throw new AppError("Product is already approved",400);
     if(product.status === "out of stock") throw new AppError("Out-of-stock product cannot be approved",400);

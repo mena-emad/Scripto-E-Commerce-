@@ -55,7 +55,7 @@ export const getProductsService = async(filter={},query={})=>{
 
 //======== update product service ========
 export const updateProductService = async(id,vendorId,productData,files)=>{
-    const product = await productModel.findById(id);
+    const product = await productModel.findById(id).populate("vendor");
     if(!product) throw new AppError("Product does not exist",400);
     if(product.vendor.toString()!==vendorId.toString()) throw new AppError("You are not authorized to update this product",400);
     let images = product.images;
@@ -103,7 +103,7 @@ export const toggleProductActiveService = async (id, isActive) => {
         throw new AppError("isActive must be a boolean", 400);
     }
 
-    const product = await productModel.findById(id);
+    const product = await productModel.findById(id).populate("vendor");
     if (!product) throw new AppError("Product does not exist", 400);
 
     if (isActive && (product.quantity <= 0 || product.status === "out of stock")) {
