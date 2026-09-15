@@ -1,20 +1,39 @@
 import mongoose from "mongoose";
 import productModel from "../data/models/Product.js";
 
-const connectDB = async () => {
-    try {
-        if (mongoose.connection.readyState === 1) {
-            return;
-        }
-
-        await mongoose.connect(process.env.MONGO_URL);
-
-        console.log("Database connected");
-
-    } catch (error) {
-        console.error("❌ Error connecting to MongoDB:", error);
-        throw error;
+const connectDB  = async ()=>{
+    try{
+        await mongoose.connect(process.env.MONGO_URL)
+        await productModel.updateMany(
+            { status: { $exists: false } },
+            [
+                {
+                    $set: {
+                        status: {
+                            $cond: [
+                                { $eq: ["$isActive", "out of stock"] },
+                                "out of stock",
+                                { $cond: [{ $eq: ["$isApproved", true] }, "approved", "pending"] }
+                            ]
+                        },
+                        isActive: {
+                            $cond: [
+                                { $in: ["$isActive", ["Active", "active", true]] },
+                                true,
+                                false
+                            ]
+                        }
+                    }
+                },
+                { $unset: "isApproved" }
+            ],
+            { updatePipeline: true }
+        );
+        console.log("Database connected")
+    }catch(error){
+        console.log(`Error from connect db ${error}`)
     }
-};
+}
 
-export default connectDB;
+
+export default connectDB
