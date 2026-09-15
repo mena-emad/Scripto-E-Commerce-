@@ -5,6 +5,7 @@ import {v2 as cloudinary} from "cloudinary";
 import sendEmail from "../../utils/sendEmail.js";
 import {createAT, createRT} from "../../utils/createTokens.js";
 import vendorModel from "../../data/models/Vendor.js";
+import connectDB from "../../config/connectDB.js";
 import bcrypt from "bcrypt"
 import mongoose from "mongoose";
 import jwt from "jsonwebtoken"
