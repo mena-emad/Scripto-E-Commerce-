@@ -7,8 +7,8 @@ import connectDB from "./config/connectDB.js";
 const port = process.env.PORT || 3000;
 
 const startServer = async ()=>{
+    await connectDB()
     try{
-        await connectDB()
         app.listen(port, () => {
             console.log(`app listening on port ${port}`)
         })
