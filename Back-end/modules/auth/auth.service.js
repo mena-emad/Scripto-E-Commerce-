@@ -60,7 +60,6 @@ export const verifyEmailService = async(email,plainOtp)=>{
 //======== user registeration service ========
 // ======== user registeration service (بدون Transactions للاختبار) ========
 export const registerService = async (user, fileData) => {
-     // التأكد من الاتصال
     let userSafe;
     let message = "User registered successfully please verify your email to use the app";
     
