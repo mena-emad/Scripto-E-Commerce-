@@ -21,6 +21,7 @@ import productRouter from "./modules/products/products.routes.js";
 import swaggerUi from "swagger-ui-express"
 import { swaggerDocument } from "./swagger.js";
 import gerror from "./middlewares/gerror.js";
+import connectDB from "./config/connectDB.js";
 
 const app = express();
 
@@ -71,6 +72,15 @@ app.use((req,res,next)=>{
     next();
 });
 
+app.use(async(req,res,next)=>{
+    try{
+        await connectDB();
+        next();
+    }catch(err){
+        next(err);
+    }
+})
+
 /**
 ||||||||||||||||||||||||||||||||||||||||||||
 ||||||||||||||||||||||||||||||||||||||||||||
@@ -78,6 +88,8 @@ app.use((req,res,next)=>{
 ||||||||||||||||||||||||||||||||||||||||||||
 ||||||||||||||||||||||||||||||||||||||||||||
 **/
+
+
 
 // ========= Authentication Routes =========
 app.use("/api/v1/products",productRouter);
