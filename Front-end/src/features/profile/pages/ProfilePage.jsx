@@ -1,243 +1,8 @@
 import useAuth from '../../../hooks/auth/useAuth';
 import { useEffect, useState } from 'react';
+import './ProfilePage.css';
 
-const profileStyles = {
-  page: {
-    width: '100%',
-    maxWidth: '1400px',
-    margin: '0 auto',
-    padding: '1.5rem',
-    color: '#f8fafc',
-  },
-
-  card: {
-    backgroundColor: '#1e293b',
-    border: '1px solid #334155',
-    borderRadius: '20px',
-    padding: '1.25rem',
-    boxShadow: '0 10px 30px rgba(0, 0, 0, 0.12)',
-  },
-
-  profileHeader: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '1rem',
-    marginBottom: '1.25rem',
-  },
-
-  avatar: {
-    width: '76px',
-    height: '76px',
-    flexShrink: 0,
-    display: 'grid',
-    placeItems: 'center',
-    borderRadius: '50%',
-    backgroundColor: '#172554',
-    color: '#60a5fa',
-    fontSize: '1.5rem',
-    fontWeight: 800,
-    objectFit: 'cover',
-    border: '2px solid #334155',
-  },
-
-  title: {
-    margin: 0,
-    fontSize: '1.4rem',
-    fontWeight: 800,
-    color: '#f8fafc',
-  },
-
-  subtitle: {
-    margin: '0.25rem 0 0',
-    color: '#94a3b8',
-  },
-
-  sectionTitle: {
-    margin: 0,
-    color: '#f8fafc',
-    fontSize: '1.2rem',
-    fontWeight: 800,
-  },
-
-  sectionSubtitle: {
-    margin: '0.3rem 0 0',
-    color: '#94a3b8',
-    fontSize: '0.9rem',
-  },
-
-  label: {
-    display: 'block',
-    marginBottom: '0.4rem',
-    color: '#cbd5e1',
-    fontSize: '0.85rem',
-    fontWeight: 700,
-  },
-
-  input: {
-    width: '100%',
-    boxSizing: 'border-box',
-    padding: '0.8rem 0.9rem',
-    borderRadius: '12px',
-    border: '1px solid #334155',
-    backgroundColor: '#111827',
-    color: '#f8fafc',
-    outline: 'none',
-    fontSize: '0.9rem',
-  },
-
-  readonlyInput: {
-    width: '100%',
-    boxSizing: 'border-box',
-    padding: '0.8rem 0.9rem',
-    borderRadius: '12px',
-    border: '1px solid #334155',
-    backgroundColor: '#111827',
-    color: '#cbd5e1',
-    outline: 'none',
-    fontSize: '0.9rem',
-  },
-
-  form: {
-    display: 'grid',
-    gap: '0.8rem',
-  },
-
-  divider: {
-    height: '1px',
-    backgroundColor: '#334155',
-    margin: '1.25rem 0',
-  },
-
-  button: {
-    width: '100%',
-    padding: '0.8rem 1rem',
-    border: 'none',
-    borderRadius: '11px',
-    backgroundColor: '#2563eb',
-    color: '#fff',
-    fontSize: '0.9rem',
-    fontWeight: 700,
-    cursor: 'pointer',
-  },
-
-  dangerButton: {
-    width: '100%',
-    padding: '0.8rem 1rem',
-    border: '1px solid #7f1d1d',
-    borderRadius: '11px',
-    backgroundColor: '#450a0a',
-    color: '#fca5a5',
-    fontSize: '0.9rem',
-    fontWeight: 700,
-    cursor: 'pointer',
-  },
-
-  fileInput: {
-    width: '100%',
-    boxSizing: 'border-box',
-    padding: '0.7rem',
-    borderRadius: '12px',
-    border: '1px dashed #475569',
-    backgroundColor: '#111827',
-    color: '#cbd5e1',
-    cursor: 'pointer',
-  },
-
-  messageBox: {
-    padding: '0.8rem 1rem',
-    marginBottom: '1rem',
-    borderRadius: '12px',
-    backgroundColor: '#052e16',
-    border: '1px solid #166534',
-    color: '#86efac',
-    fontSize: '0.9rem',
-  },
-
-  errorBox: {
-    padding: '0.8rem 1rem',
-    marginBottom: '1rem',
-    borderRadius: '12px',
-    backgroundColor: '#450a0a',
-    border: '1px solid #7f1d1d',
-    color: '#fca5a5',
-    fontSize: '0.9rem',
-  },
-
-  infoGrid: {
-    display: 'grid',
-    gap: '0.75rem',
-  },
-
-  infoItem: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    gap: '1rem',
-    padding: '0.9rem 1rem',
-    borderRadius: '12px',
-    backgroundColor: '#111827',
-    border: '1px solid #334155',
-  },
-
-  infoLabel: {
-    color: '#94a3b8',
-    fontSize: '0.85rem',
-  },
-
-  infoValue: {
-    color: '#f8fafc',
-    fontWeight: 700,
-    textAlign: 'right',
-  },
-
-  statusBadge: {
-    display: 'inline-flex',
-    alignItems: 'center',
-    padding: '0.35rem 0.7rem',
-    borderRadius: '999px',
-    fontSize: '0.75rem',
-    fontWeight: 700,
-  },
-
-  statusActive: {
-    backgroundColor: '#052e16',
-    color: '#86efac',
-    border: '1px solid #166534',
-  },
-
-  statusBlocked: {
-    backgroundColor: '#450a0a',
-    color: '#fca5a5',
-    border: '1px solid #7f1d1d',
-  },
-
-  statusVerified: {
-    backgroundColor: '#052e16',
-    color: '#86efac',
-    border: '1px solid #166534',
-  },
-
-  statusPending: {
-    backgroundColor: '#451a03',
-    color: '#fcd34d',
-    border: '1px solid #854d0e',
-  },
-
-  loadingCard: {
-    minHeight: '250px',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    flexDirection: 'column',
-    gap: '0.5rem',
-    backgroundColor: '#1e293b',
-    border: '1px solid #334155',
-    borderRadius: '20px',
-    color: '#94a3b8',
-  },
-};
-
-export default function ProfilePage() {
+function ProfilePage() {
   const {
     getMe,
     updatePassword,
@@ -262,48 +27,77 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    (async () => {
-      await getMe();
-    })();
+    getMe();
   }, []);
+
+  useEffect(() => {
+    if (currentUser) {
+      setProfileForm({
+        name: currentUser.name || '',
+        profileImage: null,
+      });
+    }
+  }, [currentUser]);
 
   if (!currentUser) {
     return (
-      <div style={profileStyles.loadingCard}>
-        <h2 style={{ margin: 0, color: '#f8fafc' }}>
-          Please log in
-        </h2>
-
-        <p style={{ margin: 0 }}>
-          Please log in to view your profile.
-        </p>
+      <div className="profile-page">
+        <div className="profile-loading-card">
+          <p>Please log in to view your profile.</p>
+        </div>
       </div>
     );
   }
 
-  const initials =
-    currentUser.name
-      ?.split(' ')
-      .filter(Boolean)
-      .map((part) => part[0])
-      .join('')
-      .slice(0, 2)
-      .toUpperCase() || '?';
+  const initials = currentUser.name
+    ? currentUser.name
+        .split(' ')
+        .map((word) => word[0])
+        .join('')
+        .slice(0, 2)
+        .toUpperCase()
+    : 'U';
 
-  const handlePasswordUpdate = async (event) => {
-    event.preventDefault();
+  const handlePasswordChange = (e) => {
+    const { name, value } = e.target;
+
+    setPasswordForm((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const handleProfileChange = (e) => {
+    const { name, value, files } = e.target;
+
+    setProfileForm((prev) => ({
+      ...prev,
+      [name]: files ? files[0] : value,
+    }));
+  };
+
+  const handlePasswordUpdate = async (e) => {
+    e.preventDefault();
+
+    setMessage('');
+    setError('');
 
     if (
-      passwordForm.newPassword !== passwordForm.confirmPassword
+      !passwordForm.currentPassword ||
+      !passwordForm.newPassword ||
+      !passwordForm.confirmPassword
     ) {
-      setError('New passwords do not match.');
+      setError('Please fill in all password fields.');
+      return;
+    }
+
+    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+      setError('New password and confirmation password do not match.');
       return;
     }
 
     try {
       setLoading(true);
-      setError('');
-      setMessage('');
 
       await updatePassword(
         passwordForm.currentPassword,
@@ -318,49 +112,53 @@ export default function ProfilePage() {
       });
 
       setMessage('Password updated successfully.');
-    } catch (requestError) {
+    } catch (err) {
       setError(
-        requestError?.response?.data?.message ||
-          'Unable to update password.'
+        err?.response?.data?.error?.message ||
+          err?.response?.data?.message ||
+          err?.message ||
+          'Failed to update password.'
       );
     } finally {
       setLoading(false);
     }
   };
 
-  const handleProfileUpdate = async (event) => {
-    event.preventDefault();
+  const handleProfileUpdate = async (e) => {
+    e.preventDefault();
+
+    setMessage('');
+    setError('');
 
     try {
       setLoading(true);
-      setError('');
-      setMessage('');
 
       const formData = new FormData();
 
       formData.append('name', profileForm.name.trim());
 
       if (profileForm.profileImage) {
-        formData.append(
-          'profileImage',
-          profileForm.profileImage
-        );
+        formData.append('profileImage', profileForm.profileImage);
       }
 
       await updateProfile(formData);
 
-      setMessage('Profile updated successfully.');
-
       setProfileForm({
-        name: '',
+        name: currentUser.name || '',
         profileImage: null,
       });
 
-      event.target.reset();
-    } catch (requestError) {
+      e.target.reset();
+
+      setMessage('Profile updated successfully.');
+
+      await getMe();
+    } catch (err) {
       setError(
-        requestError?.response?.data?.message ||
-          'Unable to update profile.'
+        err?.response?.data?.error?.message ||
+          err?.response?.data?.message ||
+          err?.message ||
+          'Failed to update profile.'
       );
     } finally {
       setLoading(false);
@@ -368,437 +166,358 @@ export default function ProfilePage() {
   };
 
   const handleDeleteAccount = async () => {
-    if (!window.confirm('Delete your account permanently?')) {
-      return;
-    }
+    const confirmed = window.confirm(
+      'Are you sure you want to delete your account? This action cannot be undone.'
+    );
+
+    if (!confirmed) return;
+
+    setMessage('');
+    setError('');
 
     try {
       setLoading(true);
-      setError('');
 
       await deleteMyAccount();
-    } catch (requestError) {
+    } catch (err) {
       setError(
-        requestError?.response?.data?.message ||
-          'Unable to delete account.'
+        err?.response?.data?.error?.message ||
+          err?.response?.data?.message ||
+          err?.message ||
+          'Failed to delete account.'
       );
-
+    } finally {
       setLoading(false);
     }
   };
 
-  return (
-    <div style={profileStyles.page}>
-      {/* Page Header */}
-      <div style={{ marginBottom: '1.5rem' }}>
-        <h1
-          style={{
-            margin: 0,
-            fontSize: '2rem',
-            fontWeight: 800,
-            color: '#f8fafc',
-          }}
-        >
-          My Profile
-        </h1>
+  const getStatusClass = () => {
+    if (currentUser.isBlocked) {
+      return 'status-badge status-blocked';
+    }
 
-        <p
-          style={{
-            margin: '0.4rem 0 0',
-            color: '#94a3b8',
-          }}
+    if (currentUser.isVerified) {
+      return 'status-badge status-verified';
+    }
+
+    return 'status-badge status-pending';
+  };
+
+  const getAccountStatus = () => {
+    if (currentUser.isBlocked) return 'Blocked';
+    return 'Active';
+  };
+
+  const getVerificationStatus = () => {
+    return currentUser.isVerified ? 'Verified' : 'Not Verified';
+  };
+
+  return (
+    <div className="profile-page">
+      {/* Header */}
+      <div className="profile-header">
+        <div
+          className="profile-avatar"
+          aria-label="Profile avatar"
         >
-          Manage your profile information, security, and account.
-        </p>
+          {currentUser.image?.url ? (
+            <img
+              src={currentUser.image.url}
+              alt={currentUser.name || 'Profile'}
+              className="profile-avatar-image"
+            />
+          ) : (
+            initials
+          )}
+        </div>
+
+        <div className="profile-header-info">
+          <h1 className="profile-title">My Profile</h1>
+
+          <p className="profile-subtitle">
+            Manage your account information, security, and preferences.
+          </p>
+        </div>
       </div>
 
       {/* Messages */}
       {message && (
-        <div style={profileStyles.messageBox}>
-          ✓ {message}
+        <div className="message-box">
+          {message}
         </div>
       )}
 
       {error && (
-        <div style={profileStyles.errorBox}>
-          ! {error}
+        <div className="error-box">
+          {error}
         </div>
       )}
 
       {/* Main Grid */}
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns:
-            'minmax(0, 1.25fr) minmax(320px, 0.75fr)',
-          gap: '1.25rem',
-          alignItems: 'start',
-        }}
-      >
-        {/* Left Column */}
-        <div
-          style={{
-            display: 'grid',
-            gap: '1.25rem',
-          }}
-        >
-          {/* Profile */}
-          <section style={profileStyles.card}>
-            <div style={profileStyles.profileHeader}>
-              {currentUser.image?.url ? (
-                <img
-                  src={currentUser.image.url}
-                  alt={`${currentUser.name}'s profile`}
-                  style={profileStyles.avatar}
-                />
-              ) : (
-                <div
-                  style={profileStyles.avatar}
-                  aria-label={`${currentUser.name}'s initials`}
-                >
-                  {initials}
-                </div>
-              )}
+      <div className="profile-main-grid">
+        {/* LEFT COLUMN */}
+        <div className="profile-column">
+          {/* Profile Information */}
+          <section className="profile-card">
+            <div className="section-header">
+              <h2 className="section-title">Profile Information</h2>
 
-              <div>
-                <h2 style={profileStyles.title}>
-                  {currentUser.name}
-                </h2>
-
-                <p style={profileStyles.subtitle}>
-                  {currentUser.email}
-                </p>
-              </div>
-            </div>
-
-            <div
-              style={{
-                display: 'grid',
-                gap: '0.9rem',
-              }}
-            >
-              <label>
-                <span style={profileStyles.label}>
-                  Full name
-                </span>
-
-                <input
-                  value={currentUser.name}
-                  style={profileStyles.readonlyInput}
-                  readOnly
-                />
-              </label>
-
-              <label>
-                <span style={profileStyles.label}>
-                  Email
-                </span>
-
-                <input
-                  value={currentUser.email}
-                  style={profileStyles.readonlyInput}
-                  readOnly
-                />
-              </label>
-
-              <label>
-                <span style={profileStyles.label}>
-                  Role
-                </span>
-
-                <input
-                  value={currentUser.role}
-                  style={profileStyles.readonlyInput}
-                  readOnly
-                />
-              </label>
-            </div>
-
-            <div style={profileStyles.divider} />
-
-            <div style={{ marginBottom: '1rem' }}>
-              <h3 style={profileStyles.sectionTitle}>
-                Update Profile
-              </h3>
-
-              <p style={profileStyles.sectionSubtitle}>
-                Change your name or profile picture.
+              <p className="section-subtitle">
+                Update your personal information and profile picture.
               </p>
             </div>
 
             <form
+              className="profile-form"
               onSubmit={handleProfileUpdate}
-              style={profileStyles.form}
             >
-              <label>
-                <span style={profileStyles.label}>
-                  Change name
-                </span>
+              {/* Name */}
+              <div className="form-group">
+                <label
+                  htmlFor="name"
+                  className="form-label"
+                >
+                  Full Name
+                </label>
 
                 <input
-                  required
+                  id="name"
+                  name="name"
+                  type="text"
                   value={profileForm.name}
-                  placeholder={currentUser.name}
-                  onChange={(event) =>
-                    setProfileForm({
-                      ...profileForm,
-                      name: event.target.value,
-                    })
-                  }
-                  style={profileStyles.input}
+                  onChange={handleProfileChange}
+                  className="profile-input"
+                  placeholder="Enter your name"
+                  disabled={loading}
                 />
-              </label>
+              </div>
 
-              <label>
-                <span style={profileStyles.label}>
-                  Change profile photo
-                </span>
+              {/* Email */}
+              <div className="form-group">
+                <label
+                  htmlFor="email"
+                  className="form-label"
+                >
+                  Email
+                </label>
 
                 <input
-                  type="file"
-                  accept="image/*"
-                  onChange={(event) =>
-                    setProfileForm({
-                      ...profileForm,
-                      profileImage:
-                        event.target.files?.[0] || null,
-                    })
-                  }
-                  style={profileStyles.fileInput}
+                  id="email"
+                  type="email"
+                  value={currentUser.email || ''}
+                  className="profile-readonly-input"
+                  disabled
+                  readOnly
                 />
-              </label>
+              </div>
+
+              {/* Profile Image */}
+              <div className="form-group">
+                <label
+                  htmlFor="profileImage"
+                  className="form-label"
+                >
+                  Profile Image
+                </label>
+
+                <input
+                  id="profileImage"
+                  name="profileImage"
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  onChange={handleProfileChange}
+                  className="profile-file-input"
+                  disabled={loading}
+                />
+              </div>
+
+              <div className="divider" />
 
               <button
                 type="submit"
+                className="profile-button"
                 disabled={loading}
-                style={{
-                  ...profileStyles.button,
-                  opacity: loading ? 0.6 : 1,
-                  cursor: loading
-                    ? 'not-allowed'
-                    : 'pointer',
-                }}
               >
-                {loading ? 'Saving...' : 'Save Profile'}
+                {loading ? 'Updating...' : 'Update Profile'}
               </button>
             </form>
           </section>
 
           {/* Security */}
-          <section style={profileStyles.card}>
-            <div style={{ marginBottom: '1rem' }}>
-              <h2 style={profileStyles.sectionTitle}>
-                Security
-              </h2>
+          <section className="profile-card">
+            <div className="section-header">
+              <h2 className="section-title">Security</h2>
 
-              <p style={profileStyles.sectionSubtitle}>
-                Update your password and secure your account.
+              <p className="section-subtitle">
+                Update your password to keep your account secure.
               </p>
             </div>
 
             <form
+              className="profile-form"
               onSubmit={handlePasswordUpdate}
-              style={profileStyles.form}
             >
-              <label>
-                <span style={profileStyles.label}>
-                  Current password
-                </span>
+              {/* Current Password */}
+              <div className="form-group">
+                <label
+                  htmlFor="currentPassword"
+                  className="form-label"
+                >
+                  Current Password
+                </label>
 
                 <input
-                  required
+                  id="currentPassword"
+                  name="currentPassword"
                   type="password"
-                  placeholder="Enter current password"
                   value={passwordForm.currentPassword}
-                  onChange={(event) =>
-                    setPasswordForm({
-                      ...passwordForm,
-                      currentPassword:
-                        event.target.value,
-                    })
-                  }
-                  style={profileStyles.input}
+                  onChange={handlePasswordChange}
+                  className="profile-input"
+                  placeholder="Enter current password"
+                  disabled={loading}
                 />
-              </label>
+              </div>
 
-              <label>
-                <span style={profileStyles.label}>
-                  New password
-                </span>
+              {/* New Password */}
+              <div className="form-group">
+                <label
+                  htmlFor="newPassword"
+                  className="form-label"
+                >
+                  New Password
+                </label>
 
                 <input
-                  required
+                  id="newPassword"
+                  name="newPassword"
                   type="password"
-                  placeholder="Enter new password"
                   value={passwordForm.newPassword}
-                  onChange={(event) =>
-                    setPasswordForm({
-                      ...passwordForm,
-                      newPassword:
-                        event.target.value,
-                    })
-                  }
-                  style={profileStyles.input}
+                  onChange={handlePasswordChange}
+                  className="profile-input"
+                  placeholder="Enter new password"
+                  disabled={loading}
                 />
-              </label>
+              </div>
 
-              <label>
-                <span style={profileStyles.label}>
-                  Confirm new password
-                </span>
+              {/* Confirm Password */}
+              <div className="form-group">
+                <label
+                  htmlFor="confirmPassword"
+                  className="form-label"
+                >
+                  Confirm New Password
+                </label>
 
                 <input
-                  required
+                  id="confirmPassword"
+                  name="confirmPassword"
                   type="password"
-                  placeholder="Confirm new password"
                   value={passwordForm.confirmPassword}
-                  onChange={(event) =>
-                    setPasswordForm({
-                      ...passwordForm,
-                      confirmPassword:
-                        event.target.value,
-                    })
-                  }
-                  style={profileStyles.input}
+                  onChange={handlePasswordChange}
+                  className="profile-input"
+                  placeholder="Confirm new password"
+                  disabled={loading}
                 />
-              </label>
+              </div>
+
+              <div className="divider" />
 
               <button
                 type="submit"
+                className="profile-button"
                 disabled={loading}
-                style={{
-                  ...profileStyles.button,
-                  opacity: loading ? 0.6 : 1,
-                  cursor: loading
-                    ? 'not-allowed'
-                    : 'pointer',
-                }}
               >
-                {loading
-                  ? 'Updating...'
-                  : 'Update Password'}
+                {loading ? 'Updating...' : 'Update Password'}
               </button>
             </form>
+          </section>
 
-            <div style={profileStyles.divider} />
-
-            <div>
-              <h3
-                style={{
-                  margin: 0,
-                  color: '#f8fafc',
-                  fontSize: '1rem',
-                }}
-              >
+          {/* Danger Zone */}
+          <section className="profile-card danger-card">
+            <div className="section-header">
+              <h2 className="section-title danger-title">
                 Danger Zone
-              </h3>
+              </h2>
 
-              <p
-                style={{
-                  margin: '0.3rem 0 0.8rem',
-                  color: '#94a3b8',
-                  fontSize: '0.85rem',
-                }}
-              >
-                Permanently delete your account and its data.
+              <p className="section-subtitle">
+                Permanently delete your account and all associated data.
               </p>
-
-              <button
-                type="button"
-                disabled={loading}
-                onClick={handleDeleteAccount}
-                style={{
-                  ...profileStyles.dangerButton,
-                  opacity: loading ? 0.6 : 1,
-                  cursor: loading
-                    ? 'not-allowed'
-                    : 'pointer',
-                }}
-              >
-                Delete Account
-              </button>
             </div>
+
+            <button
+              type="button"
+              className="danger-button"
+              onClick={handleDeleteAccount}
+              disabled={loading}
+            >
+              Delete My Account
+            </button>
           </section>
         </div>
 
-        {/* Right Column */}
-        <div
-          style={{
-            display: 'grid',
-            gap: '1.25rem',
-          }}
-        >
+        {/* RIGHT COLUMN */}
+        <div className="profile-column">
           {/* Account Status */}
-          <section style={profileStyles.card}>
-            <div style={{ marginBottom: '1rem' }}>
-              <h2 style={profileStyles.sectionTitle}>
-                Account Status
-              </h2>
+          <section className="profile-card">
+            <div className="section-header">
+              <h2 className="section-title">Account Status</h2>
 
-              <p style={profileStyles.sectionSubtitle}>
-                Current account information.
+              <p className="section-subtitle">
+                Current status of your account.
               </p>
             </div>
 
-            <div style={profileStyles.infoGrid}>
-              <div style={profileStyles.infoItem}>
-                <span style={profileStyles.infoLabel}>
+            <div className="profile-info-grid">
+              {/* Verification */}
+              <div className="profile-info-item">
+                <span className="profile-info-label">
                   Verification
                 </span>
 
                 <span
-                  style={{
-                    ...profileStyles.statusBadge,
-                    ...(currentUser.isVerified
-                      ? profileStyles.statusVerified
-                      : profileStyles.statusPending),
-                  }}
+                  className={
+                    currentUser.isVerified
+                      ? 'status-badge status-verified'
+                      : 'status-badge status-pending'
+                  }
                 >
-                  {currentUser.isVerified
-                    ? 'Verified'
-                    : 'Pending'}
+                  {getVerificationStatus()}
                 </span>
               </div>
 
-              <div style={profileStyles.infoItem}>
-                <span style={profileStyles.infoLabel}>
+              {/* Account */}
+              <div className="profile-info-item">
+                <span className="profile-info-label">
                   Account
                 </span>
 
-                <span
-                  style={{
-                    ...profileStyles.statusBadge,
-                    ...(currentUser.isBlocked
-                      ? profileStyles.statusBlocked
-                      : profileStyles.statusActive),
-                  }}
-                >
-                  {currentUser.isBlocked
-                    ? 'Blocked'
-                    : 'Active'}
+                <span className={getStatusClass()}>
+                  {getAccountStatus()}
                 </span>
               </div>
 
+              {/* Phone */}
               {currentUser.phone && (
-                <div style={profileStyles.infoItem}>
-                  <span style={profileStyles.infoLabel}>
+                <div className="profile-info-item">
+                  <span className="profile-info-label">
                     Phone
                   </span>
 
-                  <span style={profileStyles.infoValue}>
-                    {currentUser.phone || 'Not set'}
+                  <span className="profile-info-value">
+                    {currentUser.phone}
                   </span>
                 </div>
               )}
 
+              {/* Address */}
               {currentUser.address && (
-                <div style={profileStyles.infoItem}>
-                  <span style={profileStyles.infoLabel}>
+                <div className="profile-info-item">
+                  <span className="profile-info-label">
                     Address
                   </span>
 
-                  <span style={profileStyles.infoValue}>
-                    {currentUser.address || 'Not set'}
+                  <span className="profile-info-value">
+                    {currentUser.address}
                   </span>
                 </div>
               )}
@@ -806,53 +525,61 @@ export default function ProfilePage() {
           </section>
 
           {/* Account Summary */}
-          <section style={profileStyles.card}>
-            <div style={{ marginBottom: '1rem' }}>
-              <h2 style={profileStyles.sectionTitle}>
-                Account Summary
-              </h2>
+          <section className="profile-card">
+            <div className="section-header">
+              <h2 className="section-title">Account Summary</h2>
 
-              <p style={profileStyles.sectionSubtitle}>
-                Your basic account information.
+              <p className="section-subtitle">
+                Overview of your account information.
               </p>
             </div>
 
-            <div style={profileStyles.infoGrid}>
-              <div style={profileStyles.infoItem}>
-                <span style={profileStyles.infoLabel}>
+            <div className="profile-info-grid">
+              {/* Name */}
+              <div className="profile-info-item">
+                <span className="profile-info-label">
                   Name
                 </span>
 
-                <span style={profileStyles.infoValue}>
-                  {currentUser.name}
+                <span className="profile-info-value">
+                  {currentUser.name || '—'}
                 </span>
               </div>
 
-              <div style={profileStyles.infoItem}>
-                <span style={profileStyles.infoLabel}>
+              {/* Email */}
+              <div className="profile-info-item">
+                <span className="profile-info-label">
                   Email
                 </span>
 
-                <span
-                  style={{
-                    ...profileStyles.infoValue,
-                    maxWidth: '60%',
-                    overflowWrap: 'anywhere',
-                  }}
-                >
-                  {currentUser.email}
+                <span className="profile-info-value">
+                  {currentUser.email || '—'}
                 </span>
               </div>
 
-              <div style={profileStyles.infoItem}>
-                <span style={profileStyles.infoLabel}>
+              {/* Role */}
+              <div className="profile-info-item">
+                <span className="profile-info-label">
                   Role
                 </span>
 
-                <span style={profileStyles.infoValue}>
-                  {currentUser.role}
+                <span className="profile-info-value">
+                  {currentUser.role || 'User'}
                 </span>
               </div>
+
+              {/* ID */}
+              {currentUser._id && (
+                <div className="profile-info-item">
+                  <span className="profile-info-label">
+                    Account ID
+                  </span>
+
+                  <span className="profile-info-value">
+                    {currentUser._id}
+                  </span>
+                </div>
+              )}
             </div>
           </section>
         </div>
@@ -861,3 +588,4 @@ export default function ProfilePage() {
   );
 }
 
+export default ProfilePage;
