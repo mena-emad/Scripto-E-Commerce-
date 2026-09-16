@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import productModel from "../data/models/Product.js";
+import AppError from "../utils/AppError.js";
 
 const connectDB  = async ()=>{
     try{
@@ -38,7 +39,7 @@ const connectDB  = async ()=>{
         console.log("Database connected")
     }catch(error){
         console.error(`Error from connect db ${error}`)
-        throw error
+        throw new AppError(`Error from connect db ${error}`,500);
     }
 }
 
