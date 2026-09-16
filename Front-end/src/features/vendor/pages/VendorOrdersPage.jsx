@@ -68,6 +68,9 @@ export default function VendorOrdersPage({
     page: {
       display: 'grid',
       gap: '1.25rem',
+      width: '100%',
+      minWidth: 0,
+      boxSizing: 'border-box',
     },
 
     header: {
@@ -76,6 +79,12 @@ export default function VendorOrdersPage({
       alignItems: 'flex-end',
       gap: '1rem',
       flexWrap: 'wrap',
+      minWidth: 0,
+    },
+
+    headerContent: {
+      minWidth: 0,
+      flex: 1,
     },
 
     title: {
@@ -90,6 +99,7 @@ export default function VendorOrdersPage({
       margin: '0.35rem 0 0',
       color: '#64748b',
       fontSize: '0.95rem',
+      lineHeight: 1.5,
     },
 
     count: {
@@ -100,6 +110,7 @@ export default function VendorOrdersPage({
       borderRadius: '999px',
       fontSize: '0.8rem',
       fontWeight: 700,
+      flexShrink: 0,
     },
 
     alert: {
@@ -107,6 +118,7 @@ export default function VendorOrdersPage({
       padding: '0.85rem 1rem',
       fontSize: '0.9rem',
       lineHeight: 1.5,
+      overflowWrap: 'anywhere',
     },
 
     warningAlert: {
@@ -124,6 +136,7 @@ export default function VendorOrdersPage({
     orders: {
       display: 'grid',
       gap: '1rem',
+      minWidth: 0,
     },
 
     orderCard: {
@@ -132,6 +145,9 @@ export default function VendorOrdersPage({
       borderRadius: '18px',
       padding: '1.1rem',
       boxShadow: '0 4px 14px rgba(15, 23, 42, 0.04)',
+      minWidth: 0,
+      boxSizing: 'border-box',
+      overflow: 'hidden',
     },
 
     orderHeader: {
@@ -142,17 +158,21 @@ export default function VendorOrdersPage({
       paddingBottom: '1rem',
       borderBottom: '1px solid #e2e8f0',
       flexWrap: 'wrap',
+      minWidth: 0,
     },
 
     orderIdWrapper: {
       display: 'flex',
       alignItems: 'center',
       gap: '0.7rem',
+      minWidth: 0,
+      flex: 1,
     },
 
     orderIcon: {
       width: '40px',
       height: '40px',
+      minWidth: '40px',
       display: 'grid',
       placeItems: 'center',
       background: '#eff6ff',
@@ -162,17 +182,25 @@ export default function VendorOrdersPage({
       fontSize: '0.85rem',
     },
 
+    orderIdContent: {
+      minWidth: 0,
+    },
+
     orderId: {
       margin: 0,
       color: '#0f172a',
       fontSize: '0.95rem',
       fontWeight: 800,
+      overflowWrap: 'anywhere',
+      wordBreak: 'break-word',
     },
 
     orderIdLabel: {
       margin: '0.2rem 0 0',
       color: '#94a3b8',
       fontSize: '0.75rem',
+      overflowWrap: 'anywhere',
+      wordBreak: 'break-word',
     },
 
     headerRight: {
@@ -180,6 +208,7 @@ export default function VendorOrdersPage({
       alignItems: 'center',
       gap: '0.75rem',
       flexWrap: 'wrap',
+      flexShrink: 0,
     },
 
     statusSelect: {
@@ -189,6 +218,8 @@ export default function VendorOrdersPage({
       fontWeight: 700,
       outline: 'none',
       cursor: 'pointer',
+      maxWidth: '100%',
+      boxSizing: 'border-box',
     },
 
     summary: {
@@ -196,6 +227,7 @@ export default function VendorOrdersPage({
       gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))',
       gap: '0.75rem',
       padding: '1rem 0',
+      minWidth: 0,
     },
 
     summaryItem: {
@@ -203,6 +235,8 @@ export default function VendorOrdersPage({
       border: '1px solid #e2e8f0',
       borderRadius: '12px',
       padding: '0.8rem',
+      minWidth: 0,
+      boxSizing: 'border-box',
     },
 
     summaryLabel: {
@@ -216,6 +250,7 @@ export default function VendorOrdersPage({
       color: '#0f172a',
       fontSize: '1rem',
       fontWeight: 800,
+      overflowWrap: 'anywhere',
     },
 
     productsTitle: {
@@ -228,6 +263,7 @@ export default function VendorOrdersPage({
     products: {
       display: 'grid',
       gap: '0.6rem',
+      minWidth: 0,
     },
 
     product: {
@@ -239,6 +275,8 @@ export default function VendorOrdersPage({
       background: '#ffffff',
       border: '1px solid #e2e8f0',
       borderRadius: '12px',
+      minWidth: 0,
+      boxSizing: 'border-box',
     },
 
     productInfo: {
@@ -253,18 +291,21 @@ export default function VendorOrdersPage({
       overflow: 'hidden',
       textOverflow: 'ellipsis',
       whiteSpace: 'nowrap',
+      minWidth: 0,
     },
 
     productCategory: {
       margin: '0.25rem 0 0',
       color: '#64748b',
       fontSize: '0.75rem',
+      overflowWrap: 'anywhere',
     },
 
     productMeta: {
       color: '#64748b',
       fontSize: '0.8rem',
       whiteSpace: 'nowrap',
+      flexShrink: 0,
     },
 
     productPrice: {
@@ -272,6 +313,7 @@ export default function VendorOrdersPage({
       fontSize: '0.85rem',
       fontWeight: 600,
       whiteSpace: 'nowrap',
+      flexShrink: 0,
     },
 
     productTotal: {
@@ -279,6 +321,7 @@ export default function VendorOrdersPage({
       fontSize: '0.9rem',
       fontWeight: 800,
       whiteSpace: 'nowrap',
+      flexShrink: 0,
     },
 
     empty: {
@@ -287,6 +330,8 @@ export default function VendorOrdersPage({
       borderRadius: '18px',
       padding: '3rem 1rem',
       textAlign: 'center',
+      minWidth: 0,
+      boxSizing: 'border-box',
     },
 
     emptyIcon: {
@@ -311,208 +356,555 @@ export default function VendorOrdersPage({
       margin: '0.35rem 0 0',
       color: '#64748b',
       fontSize: '0.85rem',
+      lineHeight: 1.5,
     },
   };
 
   return (
-    <div style={styles.page}>
-      {/* Header */}
-      <div style={styles.header}>
-        <div>
-          <h1 style={styles.title}>Vendor Orders</h1>
+    <>
+      <style>{`
+        .vendor-orders-page {
+          width: 100%;
+          min-width: 0;
+          box-sizing: border-box;
+        }
 
-          <p style={styles.subtitle}>
-            Manage your orders and keep track of their status.
-          </p>
+        .vendor-order-card {
+          width: 100%;
+          min-width: 0;
+          box-sizing: border-box;
+        }
+
+        .vendor-product {
+          min-width: 0;
+          box-sizing: border-box;
+        }
+
+        .vendor-product-info {
+          min-width: 0;
+        }
+
+        .vendor-product-name {
+          min-width: 0;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+
+        .vendor-order-id-content {
+          min-width: 0;
+        }
+
+        .vendor-status-select {
+          max-width: 100%;
+        }
+
+        @media (max-width: 900px) {
+          .vendor-product {
+            grid-template-columns: minmax(0, 1fr) auto auto !important;
+          }
+
+          .vendor-product-total {
+            grid-column: 3;
+            grid-row: 1;
+          }
+
+          .vendor-product-price {
+            grid-column: 2;
+            grid-row: 1;
+          }
+
+          .vendor-product-meta {
+            grid-column: 2 / -1;
+            grid-row: 2;
+            justify-self: end;
+          }
+        }
+
+        @media (max-width: 700px) {
+          .vendor-orders-page {
+            gap: 1rem !important;
+          }
+
+          .vendor-order-card {
+            padding: 1rem !important;
+            border-radius: 16px !important;
+          }
+
+          .vendor-order-header {
+            align-items: flex-start !important;
+          }
+
+          .vendor-order-header-right {
+            width: 100%;
+            justify-content: flex-start;
+          }
+
+          .vendor-status-select {
+            width: 100%;
+            min-width: 0;
+          }
+
+          .vendor-summary {
+            grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+          }
+
+          .vendor-product {
+            grid-template-columns: minmax(0, 1fr) auto !important;
+            gap: 0.7rem !important;
+          }
+
+          .vendor-product-info {
+            grid-column: 1 / -1;
+          }
+
+          .vendor-product-meta {
+            grid-column: 1;
+            grid-row: 2;
+            justify-self: start;
+          }
+
+          .vendor-product-price {
+            grid-column: 1;
+            grid-row: 3;
+            justify-self: start;
+          }
+
+          .vendor-product-total {
+            grid-column: 2;
+            grid-row: 2 / span 2;
+            align-self: end;
+            justify-self: end;
+          }
+
+          .vendor-product-name {
+            white-space: normal;
+            overflow-wrap: anywhere;
+            word-break: break-word;
+          }
+        }
+
+        @media (max-width: 500px) {
+          .vendor-orders-page-title {
+            font-size: 1.35rem !important;
+          }
+
+          .vendor-orders-page-subtitle {
+            font-size: 0.85rem !important;
+          }
+
+          .vendor-order-card {
+            padding: 0.85rem !important;
+            border-radius: 15px !important;
+          }
+
+          .vendor-order-header {
+            padding-bottom: 0.85rem !important;
+          }
+
+          .vendor-order-icon {
+            width: 36px !important;
+            height: 36px !important;
+            min-width: 36px !important;
+          }
+
+          .vendor-order-id {
+            font-size: 0.88rem !important;
+          }
+
+          .vendor-order-id-label {
+            font-size: 0.68rem !important;
+          }
+
+          .vendor-summary {
+            grid-template-columns: 1fr !important;
+            gap: 0.6rem !important;
+          }
+
+          .vendor-summary-item {
+            padding: 0.7rem !important;
+          }
+
+          .vendor-product {
+            padding: 0.75rem !important;
+            border-radius: 10px !important;
+          }
+
+          .vendor-product-name {
+            font-size: 0.85rem !important;
+          }
+
+          .vendor-product-category {
+            font-size: 0.7rem !important;
+          }
+
+          .vendor-product-meta,
+          .vendor-product-price {
+            font-size: 0.75rem !important;
+          }
+
+          .vendor-product-total {
+            font-size: 0.82rem !important;
+          }
+
+          .vendor-empty {
+            padding: 2.5rem 0.85rem !important;
+            border-radius: 16px !important;
+          }
+        }
+
+        @media (max-width: 380px) {
+          .vendor-orders-page-title {
+            font-size: 1.2rem !important;
+          }
+
+          .vendor-order-card {
+            padding: 0.75rem !important;
+          }
+
+          .vendor-order-id-wrapper {
+            gap: 0.55rem !important;
+          }
+
+          .vendor-product {
+            grid-template-columns: 1fr !important;
+          }
+
+          .vendor-product-info {
+            grid-column: 1 !important;
+            grid-row: 1 !important;
+          }
+
+          .vendor-product-meta {
+            grid-column: 1 !important;
+            grid-row: 2 !important;
+            justify-self: start !important;
+          }
+
+          .vendor-product-price {
+            grid-column: 1 !important;
+            grid-row: 3 !important;
+            justify-self: start !important;
+          }
+
+          .vendor-product-total {
+            grid-column: 1 !important;
+            grid-row: 4 !important;
+            justify-self: end !important;
+            align-self: auto !important;
+          }
+        }
+
+        @media (max-width: 330px) {
+          .vendor-order-icon {
+            width: 32px !important;
+            height: 32px !important;
+            min-width: 32px !important;
+            font-size: 0.75rem !important;
+          }
+
+          .vendor-order-id {
+            font-size: 0.82rem !important;
+          }
+
+          .vendor-order-id-label {
+            font-size: 0.63rem !important;
+          }
+
+          .vendor-status-select {
+            font-size: 0.75rem !important;
+          }
+
+          .vendor-product {
+            padding: 0.65rem !important;
+          }
+        }
+      `}</style>
+
+      <div
+        style={styles.page}
+        className="vendor-orders-page"
+      >
+        {/* Header */}
+        <div style={styles.header}>
+          <div
+            style={styles.headerContent}
+            className="vendor-orders-header-content"
+          >
+            <h1
+              style={styles.title}
+              className="vendor-orders-page-title"
+            >
+              Vendor Orders
+            </h1>
+
+            <p
+              style={styles.subtitle}
+              className="vendor-orders-page-subtitle"
+            >
+              Manage your orders and keep track of their status.
+            </p>
+          </div>
+
+          <span style={styles.count}>
+            {orders.length} {orders.length === 1 ? 'Order' : 'Orders'}
+          </span>
         </div>
 
-        <span style={styles.count}>
-          {orders.length} {orders.length === 1 ? 'Order' : 'Orders'}
-        </span>
-      </div>
+        {/* Access Error */}
+        {accessError && (
+          <div
+            style={{
+              ...styles.alert,
+              ...styles.warningAlert,
+            }}
+          >
+            {accessError}
+          </div>
+        )}
 
-      {/* Access Error */}
-      {accessError && (
-        <div
-          style={{
-            ...styles.alert,
-            ...styles.warningAlert,
-          }}
-        >
-          {accessError}
-        </div>
-      )}
+        {/* Request Error */}
+        {error && (
+          <div
+            style={{
+              ...styles.alert,
+              ...styles.errorAlert,
+            }}
+          >
+            {error}
+          </div>
+        )}
 
-      {/* Request Error */}
-      {error && (
-        <div
-          style={{
-            ...styles.alert,
-            ...styles.errorAlert,
-          }}
-        >
-          {error}
-        </div>
-      )}
+        {/* Orders */}
+        {orders.length === 0 ? (
+          <div
+            style={styles.empty}
+            className="vendor-empty"
+          >
+            <div style={styles.emptyIcon}>📦</div>
 
-      {/* Orders */}
-      {orders.length === 0 ? (
-        <div style={styles.empty}>
-          <div style={styles.emptyIcon}>📦</div>
+            <p style={styles.emptyTitle}>No orders yet</p>
 
-          <p style={styles.emptyTitle}>No orders yet</p>
+            <p style={styles.emptyText}>
+              Orders containing your products will appear here.
+            </p>
+          </div>
+        ) : (
+          <div style={styles.orders}>
+            {orders.map((order) => {
+              const orderId = order._id || order.id;
+              const statusStyle = getStatusStyle(order.status);
 
-          <p style={styles.emptyText}>
-            Orders containing your products will appear here.
-          </p>
-        </div>
-      ) : (
-        <div style={styles.orders}>
-          {orders.map((order) => {
-            const orderId = order._id || order.id;
-            const statusStyle = getStatusStyle(order.status);
-
-            return (
-              <div key={orderId} style={styles.orderCard}>
-                {/* Order Header */}
-                <div style={styles.orderHeader}>
-                  <div style={styles.orderIdWrapper}>
-                    <div style={styles.orderIcon}>#</div>
-
-                    <div>
-                      <p style={styles.orderId}>
-                        Order #{order.parentOrder}
-                      </p>
-
-                      <p style={styles.orderIdLabel}>
-                        Vendor Order ID: {orderId}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div style={styles.headerRight}>
-                    <select
-                      value={order.status || 'Pending'}
-                      disabled={busyId === orderId}
-                      onChange={(event) =>
-                        updateStatus(orderId, event.target.value)
-                      }
-                      style={{
-                        ...styles.statusSelect,
-                        ...statusStyle,
-                        opacity: busyId === orderId ? 0.6 : 1,
-                      }}
+              return (
+                <div
+                  key={orderId}
+                  style={styles.orderCard}
+                  className="vendor-order-card"
+                >
+                  {/* Order Header */}
+                  <div
+                    style={styles.orderHeader}
+                    className="vendor-order-header"
+                  >
+                    <div
+                      style={styles.orderIdWrapper}
+                      className="vendor-order-id-wrapper"
                     >
-                      {[
-                        'Pending',
-                        'Processing',
-                        'Shipped',
-                        'Delivered',
-                        'Cancelled',
-                      ].map((status) => (
-                        <option key={status} value={status}>
-                          {busyId === orderId && status === order.status
-                            ? 'Updating...'
-                            : status}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
+                      <div
+                        style={styles.orderIcon}
+                        className="vendor-order-icon"
+                      >
+                        #
+                      </div>
 
-                {/* Order Summary */}
-                <div style={styles.summary}>
-                  <div style={styles.summaryItem}>
-                    <div style={styles.summaryLabel}>
-                      Products
-                    </div>
-
-                    <div style={styles.summaryValue}>
-                      {order.products?.length || 0}
-                    </div>
-                  </div>
-
-                  <div style={styles.summaryItem}>
-                    <div style={styles.summaryLabel}>
-                      Total Items
-                    </div>
-
-                    <div style={styles.summaryValue}>
-                      {order.totalAmount || 0}
-                    </div>
-                  </div>
-
-                  <div style={styles.summaryItem}>
-                    <div style={styles.summaryLabel}>
-                      Order Total
-                    </div>
-
-                    <div style={styles.summaryValue}>
-                      ${Number(order.totalPrice || 0).toFixed(2)}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Products */}
-                <div>
-                  <p style={styles.productsTitle}>
-                    Order Items
-                  </p>
-
-                  <div style={styles.products}>
-                    {(order.products || []).map((item) => {
-                      const product = item.product;
-
-                      const productName =
-                        product?.name ||
-                        item.productName ||
-                        'Product';
-
-                      const category =
-                        product?.category || 'Uncategorized';
-
-                      const quantity = Number(item.quantity || 0);
-
-                      const unitPrice = Number(item.price || 0);
-
-                      const subtotal = quantity * unitPrice;
-
-                      return (
-                        <div
-                          key={item._id || product?._id || productName}
-                          style={styles.product}
+                      <div
+                        style={styles.orderIdContent}
+                        className="vendor-order-id-content"
+                      >
+                        <p
+                          style={styles.orderId}
+                          className="vendor-order-id"
                         >
-                          <div style={styles.productInfo}>
-                            <p style={styles.productName}>
-                              {productName}
-                            </p>
+                          Order #{order.parentOrder}
+                        </p>
 
-                            <p style={styles.productCategory}>
-                              {category}
-                            </p>
+                        <p
+                          style={styles.orderIdLabel}
+                          className="vendor-order-id-label"
+                        >
+                          Vendor Order ID: {orderId}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div
+                      style={styles.headerRight}
+                      className="vendor-order-header-right"
+                    >
+                      <select
+                        value={order.status || 'Pending'}
+                        disabled={busyId === orderId}
+                        onChange={(event) =>
+                          updateStatus(orderId, event.target.value)
+                        }
+                        style={{
+                          ...styles.statusSelect,
+                          ...statusStyle,
+                          opacity: busyId === orderId ? 0.6 : 1,
+                        }}
+                        className="vendor-status-select"
+                      >
+                        {[
+                          'Pending',
+                          'Processing',
+                          'Shipped',
+                          'Delivered',
+                          'Cancelled',
+                        ].map((status) => (
+                          <option key={status} value={status}>
+                            {busyId === orderId &&
+                            status === order.status
+                              ? 'Updating...'
+                              : status}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* Order Summary */}
+                  <div
+                    style={styles.summary}
+                    className="vendor-summary"
+                  >
+                    <div
+                      style={styles.summaryItem}
+                      className="vendor-summary-item"
+                    >
+                      <div style={styles.summaryLabel}>
+                        Products
+                      </div>
+
+                      <div style={styles.summaryValue}>
+                        {order.products?.length || 0}
+                      </div>
+                    </div>
+
+                    <div
+                      style={styles.summaryItem}
+                      className="vendor-summary-item"
+                    >
+                      <div style={styles.summaryLabel}>
+                        Total Items
+                      </div>
+
+                      <div style={styles.summaryValue}>
+                        {order.totalAmount || 0}
+                      </div>
+                    </div>
+
+                    <div
+                      style={styles.summaryItem}
+                      className="vendor-summary-item"
+                    >
+                      <div style={styles.summaryLabel}>
+                        Order Total
+                      </div>
+
+                      <div style={styles.summaryValue}>
+                        ${Number(order.totalPrice || 0).toFixed(2)}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Products */}
+                  <div>
+                    <p style={styles.productsTitle}>
+                      Order Items
+                    </p>
+
+                    <div style={styles.products}>
+                      {(order.products || []).map((item) => {
+                        const product = item.product;
+
+                        const productName =
+                          product?.name ||
+                          item.productName ||
+                          'Product';
+
+                        const category =
+                          product?.category || 'Uncategorized';
+
+                        const quantity = Number(
+                          item.quantity || 0
+                        );
+
+                        const unitPrice = Number(
+                          item.price || 0
+                        );
+
+                        const subtotal = quantity * unitPrice;
+
+                        return (
+                          <div
+                            key={
+                              item._id ||
+                              product?._id ||
+                              productName
+                            }
+                            style={styles.product}
+                            className="vendor-product"
+                          >
+                            <div
+                              style={styles.productInfo}
+                              className="vendor-product-info"
+                            >
+                              <p
+                                style={styles.productName}
+                                className="vendor-product-name"
+                              >
+                                {productName}
+                              </p>
+
+                              <p
+                                style={styles.productCategory}
+                                className="vendor-product-category"
+                              >
+                                {category}
+                              </p>
+                            </div>
+
+                            <span
+                              style={styles.productMeta}
+                              className="vendor-product-meta"
+                            >
+                              Qty: {quantity}
+                            </span>
+
+                            <span
+                              style={styles.productPrice}
+                              className="vendor-product-price"
+                            >
+                              ${unitPrice.toFixed(2)} each
+                            </span>
+
+                            <strong
+                              style={styles.productTotal}
+                              className="vendor-product-total"
+                            >
+                              ${subtotal.toFixed(2)}
+                            </strong>
                           </div>
-
-                          <span style={styles.productMeta}>
-                            Qty: {quantity}
-                          </span>
-
-                          <span style={styles.productPrice}>
-                            ${unitPrice.toFixed(2)} each
-                          </span>
-
-                          <strong style={styles.productTotal}>
-                            ${subtotal.toFixed(2)}
-                          </strong>
-                        </div>
-                      );
-                    })}
+                        );
+                      })}
+                    </div>
                   </div>
                 </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
-    </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    </>
   );
 }

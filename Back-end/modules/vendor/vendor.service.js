@@ -76,7 +76,31 @@ class VendorOrderService {
     async updateOrdersStatus(orderId,vendorId,status){
         const order = await subOrderModel.findOne({vendor:vendorId,_id:orderId});
         if(!order) throw new AppError("Order does not exist",400);
+        const oldStatus = order.status;
         order.status = status;
+        if(status === "Cancelled"){
+            const products = await productModel.find({vendor:vendorId});
+            for(const product of products){
+                for(const item of order.products){
+                    if(product._id.toString() === item.product.toString()){
+                        product.quantity += item.quantity;
+                    }
+                }
+                await product.save({validateBeforeSave:false});
+            }
+           
+        }
+        else if(oldStatus === "Cancelled"){
+            const products = await productModel.find({vendor:vendorId});
+            for(const product of products){
+                for(const item of order.products){
+                    if(product._id.toString() === item.product.toString()){
+                        product.quantity -= item.quantity;
+                    }
+                }
+                await product.save({validateBeforeSave:false});
+            }
+        }
         await order.save({validateBeforeSave:false});
         await this.updateParentOrderStatus(order.parentOrder);
     }
