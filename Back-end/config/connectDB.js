@@ -3,11 +3,10 @@ import productModel from "../data/models/Product.js";
 
 const connectDB  = async ()=>{
     try{
-        await mongoose.connect(process.env.MONGO_URL,{
-            family: 4,
-            directConnection: false,
-            serverSelectionTimeoutMS: 5000
-        })
+        if(mongoose.connection.readyState === 1){
+            return
+        }
+        await mongoose.connect(process.env.MONGO_URL)
         // await productModel.updateMany(
         //     { status: { $exists: false } },
         //     [
