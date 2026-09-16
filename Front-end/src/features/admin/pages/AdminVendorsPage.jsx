@@ -85,7 +85,6 @@ export default function AdminVendorsPage({
 
             const vendorBusy = busyId === vendor._id;
             const ownerBusy = busyId === ownerId;
-
             return (
               <div key={vendorId} style={styles.vendorCard}>
                 {/* Vendor Header */}

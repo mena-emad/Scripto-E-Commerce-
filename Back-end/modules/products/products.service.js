@@ -57,7 +57,7 @@ export const getProductsService = async(filter={},query={})=>{
 export const updateProductService = async(id,vendorId,productData,files)=>{
     const product = await productModel.findById(id).populate("vendor");
     if(!product) throw new AppError("Product does not exist",400);
-    if(product.vendor.toString()!==vendorId.toString()) throw new AppError("You are not authorized to update this product",400);
+    if(product.vendor._id.toString()!==vendorId.toString()) throw new AppError("You are not authorized to update this product",400);
     let images = product.images;
     if(files && files.length >0){
         if(files && files.length > 5) throw new AppError("Only 5 images are allowed",400);
