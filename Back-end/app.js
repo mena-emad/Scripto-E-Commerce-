@@ -72,14 +72,14 @@ app.use((req,res,next)=>{
     next();
 });
 
-// app.use(async(req,res,next)=>{
-//     try{
-//         await connectDB();
-//         next();
-//     }catch(err){
-//         next(err);
-//     }
-// })
+app.use(async(req,res,next)=>{
+    try{
+        await connectDB();
+        next();
+    }catch(err){
+        next(err);
+    }
+})
 
 /**
 ||||||||||||||||||||||||||||||||||||||||||||
