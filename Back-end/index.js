@@ -5,13 +5,11 @@ dotenv.config();
 import app from "./app.js";
 import connectDB from "./config/connectDB.js";
 const port = process.env.PORT || 3000;
-
+await connectDB()
 const startServer = async ()=>{
-    await connectDB()
+    
     try{
-        app.listen(port, () => {
-            console.log(`app listening on port ${port}`)
-        })
+        console.log("Index.js Running")
     }
     catch(error){
         console.log(error)
