@@ -6,7 +6,10 @@ const connectDB  = async ()=>{
         if(mongoose.connection.readyState === 1){
             return
         }
-        await mongoose.connect(process.env.MONGO_URL)
+        await mongoose.connect(process.env.MONGO_URL,{
+            family:4,
+            serverSelectionTimeoutMS:10000
+        })
         // await productModel.updateMany(
         //     { status: { $exists: false } },
         //     [
