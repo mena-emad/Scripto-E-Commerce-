@@ -311,7 +311,7 @@ export default function OrdersPage({ orders }) {
 
               {/* Items */}
               <div style={styles.items}>
-                {(order.items || []).map(
+                {(order.products || []).map(
                   (item) => (
                     <div
                       key={`${order.id}-${item.productId}`}
@@ -321,7 +321,7 @@ export default function OrdersPage({ orders }) {
                       <span
                         style={styles.itemName}
                       >
-                        {item.productName} ×{' '}
+                        {item.name} ×{' '}
                         {item.quantity}
                       </span>
 

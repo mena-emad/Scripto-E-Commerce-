@@ -829,11 +829,11 @@ export default function VendorOrdersPage({
 
                         const productName =
                           product?.name ||
-                          item.productName ||
+                          item?.name ||
                           'Product';
 
                         const category =
-                          product?.category || 'Uncategorized';
+                          product?.category || item.category || 'Uncategorized';
 
                         const quantity = Number(
                           item.quantity || 0
