@@ -25,12 +25,11 @@ class VendorOrderService {
             let changed = false;
 
             for (const line of order.products || []) {
-                const product = line.product;
-                if (!product) continue;
-                const basePrice = Number(product.price);
-                const price = product.discount?.isActive
-                    ? basePrice * (1 - Number(product.discount.percentage || 0) / 100)
-                    : basePrice;
+                const basePrice = Number(line.price) || 0;
+                // const price = product.discount?.isActive
+                //     ? basePrice * (1 - Number(product.discount.percentage || 0) / 100)
+                //     : basePrice;
+                const price = basePrice;
                 const quantity = Number(line.quantity) || 0;
                 totalPrice += price * quantity;
                 totalAmount += quantity;
@@ -66,7 +65,7 @@ class VendorOrderService {
     }
     async getMyOrders(vendorId){
         await this.repairOrderTotals(vendorId);
-        return await subOrderModel.find({vendor:vendorId}).populate("products.product").lean();
+        return await subOrderModel.find({vendor:vendorId}).lean();
     }
     async getOrderDetails(orderId,vendorId){
         await this.repairOrderTotals(vendorId, orderId);

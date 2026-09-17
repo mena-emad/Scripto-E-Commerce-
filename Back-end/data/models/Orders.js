@@ -47,6 +47,14 @@ const parentOrderSchema = new mongoose.Schema({
             price: {
                 type: Number,
                 required: true
+            },
+            name: {
+                type: String,
+                required: true
+            },
+            category:{
+                type: String,
+                required: true
             }
         }
     ]
@@ -84,6 +92,14 @@ const subOrderSchema = new mongoose.Schema({
                 type:Number,
                 required:true
             },
+            name:{
+                type:String,
+                required:true
+            },
+            category:{
+                type:String,
+                required:true
+            }
         }
     ],
     totalPrice:{

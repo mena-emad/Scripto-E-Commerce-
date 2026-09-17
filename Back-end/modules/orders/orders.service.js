@@ -59,7 +59,10 @@ export const makeOrderService = async (orderData, userId) => {
                 product: product._id,
                 quantity: item.quantity,
                 price: itemPrice,
-                vendor: product.vendor
+                vendor: product.vendor,
+                name: product.name,
+                category: product.category
+
             });
         }
 
@@ -67,7 +70,10 @@ export const makeOrderService = async (orderData, userId) => {
             product: product._id,
             quantity: item.quantity,
             price: itemPrice,
-            vendor: product.vendor._id || product.vendor
+            vendor: product.vendor._id || product.vendor,
+            name: product.name,
+            category: product.category
+            
         }));
         
         const totalAmount = parentProducts.reduce((acc, curr) => acc + curr.quantity, 0);
@@ -85,14 +91,18 @@ export const makeOrderService = async (orderData, userId) => {
         for (const vendorId in itemsByVendor) {
             const vendorItems = itemsByVendor[vendorId];
             
-            const subTotalPrice = vendorItems.reduce((acc, curr) => acc + (curr.price * curr.quantity), 0);
+            const subTotalPrice = vendorItems.reduce((acc, curr) =>{
+                
+                 return acc + (curr.price * curr.quantity)
+                }, 0);
             const subTotalAmount = vendorItems.reduce((acc, curr) => acc + curr.quantity, 0); 
             const subOrderPayLoad = {
                 parentOrder: parentOrder._id,
                 vendor: vendorId,
                 products: vendorItems,
                 totalPrice: subTotalPrice,
-                totalAmount: subTotalAmount
+                totalAmount: subTotalAmount,
+            
             };
             
             internalValidation(subOrderValidation, subOrderPayLoad);
@@ -161,7 +171,6 @@ export const makeOrderService = async (orderData, userId) => {
 export const getMyOrdersService = async (userId) => {
     return parentOrderModel
         .find({ user: userId })
-        .populate('products.product')
         .sort({ createdAt: -1 })
         .lean();
 };
